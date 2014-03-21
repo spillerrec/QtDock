@@ -16,5 +16,14 @@
 *.pro.user.*
 moc_*.cpp
 qrc_*.cpp
+*.moc
 Makefile
 *-build-*
+*_automoc.cpp*
+
+#CMake stuff
+CMakeFiles
+CMakeTmp
+lib
+CMakeCache.txt
+*.cmake
