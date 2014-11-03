@@ -1,6 +1,8 @@
 #include "extraWidgets.hpp"
 #include "TaskManager.hpp"
 
+#include <QDesktopWidget>
+
 
 class TaskBar : public QWidget{
 	private:
@@ -15,6 +17,13 @@ class TaskBar : public QWidget{
  			boxlayout->addWidget( &manager );
  			boxlayout->addStretch();
  			boxlayout->addWidget( &clock );
+			
+			setWindowFlags( Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
+			setStyleSheet( "* {background: black;}" );
+			
+			auto screen = QApplication::desktop()->availableGeometry();
+			move( screen.topLeft() );
+			resize( 32, screen.height() );
 		}
 };
 
