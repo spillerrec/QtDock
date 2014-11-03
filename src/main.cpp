@@ -1,10 +1,15 @@
+#include "extraWidgets.hpp"
+
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDebug>
 #include <QLabel>
 #include <QPainter>
 #include <QPixmap>
+#include <QTime>
+#include <QTimer>
 #include <QWidget>
+#include <QMouseEvent>
 
 #include <kwindowsystem.h>
 #include <kwindowinfo.h>
@@ -29,44 +34,88 @@ class Window{
 		
 		QString getTitle() const{ return title; }
 		
-		bool isVisible( int desktop ) const{
+		bool isVisible( int desktop=KWindowSystem::currentDesktop() ) const{
 			KWindowInfo info( id, NET::WMDesktop );
 			return visible && info.isOnDesktop( desktop );
 		}
 		
 		QPixmap icon() const{ return KWindowSystem::icon( id ); }
+		
+		void activate(){ KWindowSystem::forceActiveWindow( id ); }
 };
 
 class TaskGroup: public QWidget{
 	private:
 		QByteArray name;
-		//QPixmap icon;
+		QPixmap icon;
 		vector<Window> windows;
+		
+		bool hover{ false }, active{ false };
+		QPixmap getIcon();
 		
 	public:
 		TaskGroup( QByteArray name, WId window, QWidget* parent )
-			:	QWidget(parent), name(name)//, icon( KWindowSystem::icon( window ) )
-			{
-				addWindow( window );
-				//setPixmap( icon );
-				setMaximumSize( 32,32 );
-			}
+			:	QWidget(parent), name(name) {
+			addWindow( window );
+			setMinimumSize( 32,32 );
+			setMaximumSize( 32,32 );
+		}
 		void addWindow( WId id ){ windows.emplace_back( id ); }
 		
 		int amount() const{ return windows.size(); }
 		
-		int areVisible( int desktop ) const{
+		int areVisible( int desktop=KWindowSystem::currentDesktop() ) const{
 			return count_if( windows.begin(), windows.end(),
 					[=]( const Window& w ){ return w.isVisible( desktop ); } );
 		}
 		
 	protected:
-		void paintEvent( QPaintEvent* e ){
+		virtual void paintEvent( QPaintEvent* ) override{
 			QPainter painter(this);
 			painter.setRenderHint( QPainter::SmoothPixmapTransform );
-			painter.drawPixmap( 0,0, 32,32, windows[0].icon() );
+			painter.drawPixmap( 0,0, 32,32, getIcon() );
+			
+			if( hover )
+				painter.drawRect( 1,1, 30,30 );
+			
+			auto amount = areVisible();
+			if( amount > 1 )
+				painter.drawText( 20, 28, QString::number( amount ) );
+		}
+		
+		virtual void mouseReleaseEvent( QMouseEvent* event ) override {
+			switch( areVisible() ){
+				case 0: break;//TODO: open application
+				case 1:
+						for( auto& window : windows )
+							if( window.isVisible() ){
+								window.activate();
+							}
+					break;
+				default: break; //TODO: show selection menu
+			}
+			event->accept();
+		}
+		
+		virtual void enterEvent( QEvent* ) override{
+			hover = true;
+			update();
+		}
+		virtual void leaveEvent( QEvent* ) override{
+			hover = false;
+			update();
 		}
 };
+
+QPixmap TaskGroup::getIcon(){
+	if( icon.isNull() ){
+		if( windows.size() > 0 )
+			icon = windows.front().icon();
+		//TODO: find application icon
+	}
+	return icon;
+}
+
 
 class TaskManager : public QWidget{
 	private:
@@ -82,20 +131,13 @@ class TaskManager : public QWidget{
 	public:
 		TaskManager( QWidget* parent=nullptr ) : QWidget( parent ) {
 			boxlayout = new QBoxLayout( QBoxLayout::TopToBottom, this );
+			boxlayout->setContentsMargins( 0,0,0,0 );
 			setLayout( boxlayout );
 			
 			for( auto wid : KWindowSystem::windows() )
 				addWindow( wid );
 			
 			setGeometry( QRect( 0,0, 200, 200 ) );
-		}
-		
-		
-		void list(){
-			for( auto& task : tasks ){
-				if( task.second->areVisible(2) > 0 )
-					qDebug() << task.first ;
-			}
 		}
 		
 		const TaskGroups& getTasks() const{ return tasks; }
@@ -113,24 +155,34 @@ void TaskManager::addWindow( WId id ){
 		auto new_task = new TaskGroup( info.windowClassClass(), id, this );
 		tasks.insert( { task_name, new_task } );
 		layout()->addWidget( new_task );
-		if( new_task->areVisible( 2 ) <= 0 )
+		if( new_task->areVisible() <= 0 )
 			new_task->hide();
 	}
 };
 
 
+class TaskBar : public QWidget{
+	private:
+		TaskManager manager;
+		ClockWidget clock;
+		
+	public:
+		TaskBar( QWidget* parent = nullptr ) : QWidget(parent), manager(this), clock(this) {
+			auto boxlayout = new QBoxLayout( QBoxLayout::TopToBottom, this );
+			boxlayout->setContentsMargins( 0,0,0,0 );
+			setLayout( boxlayout );
+ 			boxlayout->addWidget( &manager );
+ 			boxlayout->addStretch();
+ 			boxlayout->addWidget( &clock );
+		}
+};
+
+
 int main( int argc, char* argv[] ){
 	QApplication app( argc, argv );
-	auto amount = KWindowSystem::numberOfDesktops();
-	qDebug() << amount;
-	for( int i=1; i<=amount; i++ )
-		qDebug() << KWindowSystem::desktopName(i);
 	
-	TaskManager tasks;
+	TaskBar tasks;
 	tasks.show();
-	
-	tasks.list();
-	
 	
 	return app.exec();
 }

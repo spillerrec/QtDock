@@ -8,4 +8,5 @@ QT += widgets
 QMAKE_CXXFLAGS += -std=c++11
 
 # Input
-SOURCES += src/main.cpp
+HEADERS += src/extraWidgets.hpp
+SOURCES += src/extraWidgets.cpp src/main.cpp
