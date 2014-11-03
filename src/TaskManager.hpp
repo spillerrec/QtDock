@@ -11,7 +11,6 @@
 #include <QTime>
 #include <QTimer>
 #include <QWidget>
-#include <QMouseEvent>
 
 #include <kwindowsystem.h>
 #include <kwindowinfo.h>
@@ -37,6 +36,7 @@ class Window{
 		//	qDebug() << title << " ------ " << visible;
 		}
 		
+		WId getId() const{ return id; }
 		bool isId( WId id ) const{ return this->id == id; }
 		
 		QString getTitle() const{ return title; }
@@ -63,6 +63,7 @@ class TaskGroup: public QWidget{
 		bool hover{ false }, active{ false };
 		
 		QPixmap getIcon();
+		void startApplication();
 		
 	public:
 		TaskGroup( QByteArray name, WId window, QWidget* parent )

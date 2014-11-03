@@ -1,7 +1,9 @@
 
 #include "TaskManager.hpp"
 
-
+#include <QMouseEvent>
+#include <QProcess>
+#include <QMessageBox>
 
 
 QPixmap TaskGroup::getIcon(){
@@ -22,6 +24,12 @@ void TaskGroup::refresh(){
 		hide();
 }
 
+void TaskGroup::startApplication(){
+	//TODO: ClassName seems to usually be the name of the executable, but use something more reliable!
+	if( !QProcess::startDetached( name ) )
+		QMessageBox::warning( this, tr("Could not start program"), tr("Could not start executable: ") + name );
+}
+
 
 void TaskGroup::paintEvent( QPaintEvent* ) {
 	QPainter painter(this);
@@ -37,17 +45,23 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 }
 
 void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
-	switch( areVisible() ){
-		case 0: break;//TODO: open application
-		case 1:
-				for( auto& window : windows )
-					if( window.isVisible() ){
-						window.activate();
-					}
-			break;
-		default: break; //TODO: show selection menu
+	if( event->button() == Qt::LeftButton ){
+		if( event->modifiers() & Qt::ShiftModifier )
+			startApplication();
+		else
+			switch( areVisible() ){
+				case 0: startApplication(); break;
+				case 1:
+						for( auto& window : windows )
+							if( window.isVisible() ){
+								window.activate();
+							}
+					break;
+				default: break; //TODO: show selection menu
+			}
 	}
-	event->accept();
+	else
+		event->ignore();
 }
 	
 
@@ -60,7 +74,7 @@ void TaskManager::addWindow( WId id ){
 	if( task != tasks.end() )
 		task->second->addWindow( id );
 	else{
-		auto new_task = new TaskGroup( info.windowClassClass(), id, this );
+		auto new_task = new TaskGroup( task_name, id, this );
 		tasks.insert( { task_name, new_task } );
 		layout()->addWidget( new_task );
 	}
