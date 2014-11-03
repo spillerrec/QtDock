@@ -61,6 +61,7 @@ class TaskGroup: public QWidget{
 		
 		bool pinned{ false };
 		bool hover{ false }, active{ false };
+		
 		QPixmap getIcon();
 		
 	public:
@@ -70,15 +71,17 @@ class TaskGroup: public QWidget{
 			setMinimumSize( 32,32 );
 			setMaximumSize( 32,32 );
 		}
-		void addWindow( WId id ){ windows.emplace_back( id ); }
+		void addWindow( WId id ){ windows.emplace_back( id ); refresh(); }
 		
 		bool removeWindow( WId id ){
 			windows.erase( std::remove_if( windows.begin(), windows.end()
 				,	[=]( const Window& w ){ return w.isId( id ); } )
 				,	windows.end() );
+			refresh();
 			return windows.size() == 0 && !pinned;
 		}
 		
+		void refresh();
 		int amount() const{ return windows.size(); }
 		
 		int areVisible( int desktop=KWindowSystem::currentDesktop() ) const{
@@ -87,32 +90,8 @@ class TaskGroup: public QWidget{
 		}
 		
 	protected:
-		virtual void paintEvent( QPaintEvent* ) override{
-			QPainter painter(this);
-			painter.setRenderHint( QPainter::SmoothPixmapTransform );
-			painter.drawPixmap( 0,0, 32,32, getIcon() );
-			
-			if( hover )
-				painter.drawRect( 1,1, 30,30 );
-			
-			auto amount = areVisible();
-			if( amount > 1 )
-				painter.drawText( 20, 28, QString::number( amount ) );
-		}
-		
-		virtual void mouseReleaseEvent( QMouseEvent* event ) override {
-			switch( areVisible() ){
-				case 0: break;//TODO: open application
-				case 1:
-						for( auto& window : windows )
-							if( window.isVisible() ){
-								window.activate();
-							}
-					break;
-				default: break; //TODO: show selection menu
-			}
-			event->accept();
-		}
+		virtual void paintEvent( QPaintEvent* event ) override;
+		virtual void mouseReleaseEvent( QMouseEvent* event ) override;
 		
 		virtual void enterEvent( QEvent* ) override{
 			hover = true;
@@ -138,6 +117,10 @@ class TaskManager : public QWidget{
 	private slots:
 		void addWindow( WId id );
 		void removeWindow( WId id );
+		void refresh(){
+			for( auto& task : tasks )
+				task.second->refresh();
+		}
 		
 	public:
 		TaskManager( QWidget* parent=nullptr ) : QWidget( parent ) {
@@ -148,11 +131,10 @@ class TaskManager : public QWidget{
 			for( auto wid : KWindowSystem::windows() )
 				addWindow( wid );
 			
-			setGeometry( QRect( 0,0, 200, 200 ) );
-			
 			auto system = KWindowSystem::self();
 			connect( system, SIGNAL(windowAdded(WId)), this, SLOT(addWindow(WId)) );
 			connect( system, SIGNAL(windowRemoved(WId)), this, SLOT(removeWindow(WId)) );
+			connect( system, SIGNAL(currentDesktopChanged(int)), this, SLOT(refresh()) );
 		}
 		
 		const TaskGroups& getTasks() const{ return tasks; }

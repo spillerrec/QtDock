@@ -13,6 +13,44 @@ QPixmap TaskGroup::getIcon(){
 	return icon;
 }
 
+void TaskGroup::refresh(){
+	if( areVisible() > 0 ){
+		show();
+		update();
+	}
+	else
+		hide();
+}
+
+
+void TaskGroup::paintEvent( QPaintEvent* ) {
+	QPainter painter(this);
+	painter.setRenderHint( QPainter::SmoothPixmapTransform );
+	painter.drawPixmap( 0,0, 32,32, getIcon() );
+	
+	if( hover )
+		painter.drawRect( 1,1, 30,30 );
+	
+	auto amount = areVisible();
+	if( amount > 1 )
+		painter.drawText( 20, 28, QString::number( amount ) );
+}
+
+void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
+	switch( areVisible() ){
+		case 0: break;//TODO: open application
+		case 1:
+				for( auto& window : windows )
+					if( window.isVisible() ){
+						window.activate();
+					}
+			break;
+		default: break; //TODO: show selection menu
+	}
+	event->accept();
+}
+	
+
 void TaskManager::addWindow( WId id ){
 	KWindowInfo info( id, 0, NET::WM2WindowClass );
 	//TODO: determine the difference between class and name
@@ -25,8 +63,6 @@ void TaskManager::addWindow( WId id ){
 		auto new_task = new TaskGroup( info.windowClassClass(), id, this );
 		tasks.insert( { task_name, new_task } );
 		layout()->addWidget( new_task );
-		if( new_task->areVisible() <= 0 )
-			new_task->hide();
 	}
 };
 

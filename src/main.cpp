@@ -20,6 +20,7 @@ class TaskBar : public QWidget{
 			
 			setWindowFlags( Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
 			setStyleSheet( "* {background: black;}" );
+			KWindowSystem::setOnAllDesktops( winId(), true );
 			
 			auto screen = QApplication::desktop()->availableGeometry();
 			move( screen.topLeft() );
