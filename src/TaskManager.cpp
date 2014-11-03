@@ -32,11 +32,11 @@ void TaskManager::addWindow( WId id ){
 
 
 void TaskManager::removeWindow( WId id ){
+	//NOTE: we cannot get the key, so we have to iterate though them all
 	for( auto& task : tasks )
 		if( task.second->removeWindow( id ) ){
 			layout()->removeWidget( task.second );
-			delete task.second; //TODO: do this properly
-			task.second = nullptr;
+			task.second->deleteLater();
 			tasks.erase( tasks.find( task.first ) );
 			break;
 		}

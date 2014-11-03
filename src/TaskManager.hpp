@@ -30,8 +30,11 @@ class Window{
 		
 	public:
 		Window( WId id ) : id(id) {
-			KWindowInfo info( id, NET::WMName );
-			title = info.name();
+			KWindowInfo info( id, NET::WMVisibleIconName | NET::WMState | NET::WMWindowType );
+			title = info.visibleIconName();
+			auto type = info.windowType( NET::NormalMask );
+			visible = !info.hasState( NET::SkipTaskbar ) && type == 0;
+		//	qDebug() << title << " ------ " << visible;
 		}
 		
 		bool isId( WId id ) const{ return this->id == id; }
