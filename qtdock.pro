@@ -5,8 +5,8 @@ QT += KWindowSystem
 QT += widgets
 
 # C++11 support
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++14
 
 # Input
-HEADERS += src/extraWidgets.hpp
-SOURCES += src/extraWidgets.cpp src/main.cpp
+HEADERS += src/extraWidgets.hpp src/TaskManager.hpp
+SOURCES += src/extraWidgets.cpp src/TaskManager.cpp src/main.cpp
