@@ -60,6 +60,7 @@ class TaskGroup: public TaskBarQWidget<>{
 	Q_OBJECT
 	
 	private:
+		class TaskManager& manager;
 		Application app;
 		QPixmap icon;
 		std::vector<Window> windows;
@@ -70,11 +71,11 @@ class TaskGroup: public TaskBarQWidget<>{
 		QPixmap getIcon();
 		void startApplication();
 		
-		TaskGroup( TaskBar& task_bar );
+		TaskGroup( TaskManager& manager );
 		
 	public:
-		TaskGroup( WId window, TaskBar& task_bar );
-		TaskGroup( Application application, TaskBar& task_bar );
+		TaskGroup( WId window, TaskManager& manager );
+		TaskGroup( Application application, TaskManager& manager );
 		void addWindow( WId id ){ windows.emplace_back( id ); refresh(); }
 		
 		bool removeWindow( WId id ){
@@ -84,6 +85,8 @@ class TaskGroup: public TaskBarQWidget<>{
 			refresh();
 			return windows.size() == 0 && !pinned;
 		}
+		
+		std::vector<Window>& getWindows(){ return windows; }
 		
 		bool isPinned() const{ return pinned; }
 		Application getApp() const{ return app; }
@@ -112,12 +115,12 @@ class TaskGroup: public TaskBarQWidget<>{
 		void pinnedChanged();
 };
 
-
 class TaskManager : public TaskBarQWidget<>{
 	Q_OBJECT
 	
 	private:
 		QBoxLayout* boxlayout;
+		class WindowList* list;
 	
 	private:
 		using TaskGroups = std::map<QString, TaskGroup*>;
@@ -142,6 +145,8 @@ class TaskManager : public TaskBarQWidget<>{
 		TaskManager( TaskBar& task_bar );
 		
 		const TaskGroups& getTasks() const{ return tasks; }
+		
+		void showWindowList( TaskGroup* group );
 };
 
 

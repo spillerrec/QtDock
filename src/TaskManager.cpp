@@ -1,6 +1,8 @@
 
 #include "TaskManager.hpp"
 
+#include "WindowList.hpp"
+
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
@@ -33,19 +35,19 @@ Window::Window( WId id ) : id(id) {
 //	qDebug() << title << " ------ " << visible;
 }
 
-TaskGroup::TaskGroup( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ){
+TaskGroup::TaskGroup( TaskManager& manager ) : TaskBarQWidget<>( manager.taskBar() ), manager(manager){
 	setMinimumSize( 32,32 );
 	setMaximumSize( 32,32 );
 }
 
 
-TaskGroup::TaskGroup( WId window, TaskBar& task_bar ) : TaskGroup( task_bar ) {
+TaskGroup::TaskGroup( WId window, TaskManager& manager ) : TaskGroup( manager ) {
 	addWindow( window );
 	app = Application( window );
 }
 
-TaskGroup::TaskGroup( Application application, TaskBar& task_bar )
-	:	TaskGroup( task_bar ) {
+TaskGroup::TaskGroup( Application application, TaskManager& manager )
+	:	TaskGroup( manager ) {
 	app = application;
 	pinned = true;
 }
@@ -103,7 +105,7 @@ void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
 								window.activate();
 							}
 					break;
-				default: break; //TODO: show selection menu
+				default: manager.showWindowList( this ); break; //TODO: show selection menu
 			}
 	}
 	else
@@ -116,12 +118,14 @@ TaskManager::TaskManager( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ) {
 	boxlayout->setContentsMargins( 0,0,0,0 );
 	setLayout( boxlayout );
 	
+	list = new WindowList( &task_bar );
+	
 	qRegisterMetaTypeStreamOperators<Application>( "Application" );
 	qRegisterMetaTypeStreamOperators<QList<Application>>( "QList<Application>" );
 	
 	auto apps = taskBar().getSettings().value( "TaskManager/pinned" ).value<QList<Application>>();
 	for( auto& app : apps )
-		add( app.class_name, new TaskGroup( app, taskBar() ) );
+		add( app.class_name, new TaskGroup( app, *this ) );
 	
 	for( auto wid : KWindowSystem::windows() )
 		addWindow( wid );
@@ -142,7 +146,7 @@ void TaskManager::addWindow( WId id ){
 	if( task != tasks.end() )
 		task->second->addWindow( id );
 	else
-		add( task_name, new TaskGroup( id, taskBar() ) );
+		add( task_name, new TaskGroup( id, *this ) );
 };
 
 
@@ -167,3 +171,11 @@ void TaskManager::savePinned(){
 	auto apps_var = QVariant::fromValue<QList<Application>>(apps);
 	taskBar().getSettings().setValue( "TaskManager/pinned", apps_var );
 }
+
+void TaskManager::showWindowList( TaskGroup* group ){
+	list->changeGroup( group );
+	list->show();
+//	list->move( 50, 200 );
+	//TODO: position
+}
+
