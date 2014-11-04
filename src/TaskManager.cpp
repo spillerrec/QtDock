@@ -86,7 +86,7 @@ void TaskManager::addWindow( WId id ){
 	if( task != tasks.end() )
 		task->second->addWindow( id );
 	else{
-		auto new_task = new TaskGroup( task_name, id, this );
+		auto new_task = new TaskGroup( task_name, id, taskBar() );
 		tasks.insert( { task_name, new_task } );
 		layout()->addWidget( new_task );
 	}

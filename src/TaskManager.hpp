@@ -1,6 +1,7 @@
 #ifndef TASK_MANAGER_HPP
 #define TASK_MANAGER_HPP
 
+#include "TaskBar.hpp"
 
 #include <QBoxLayout>
 #include <QDebug>
@@ -41,7 +42,7 @@ class Window{
 		void activate(){ KWindowSystem::forceActiveWindow( id ); }
 };
 
-class TaskGroup: public QWidget{
+class TaskGroup: public TaskBarQWidget<>{
 	Q_OBJECT
 	
 	private:
@@ -56,8 +57,8 @@ class TaskGroup: public QWidget{
 		void startApplication();
 		
 	public:
-		TaskGroup( QByteArray name, WId window, QWidget* parent )
-			:	QWidget(parent), name(name) {
+		TaskGroup( QByteArray name, WId window, TaskBar& task_bar )
+			:	TaskBarQWidget<>( task_bar ), name(name) {
 			addWindow( window );
 			setMinimumSize( 32,32 );
 			setMaximumSize( 32,32 );
@@ -95,7 +96,7 @@ class TaskGroup: public QWidget{
 };
 
 
-class TaskManager : public QWidget{
+class TaskManager : public TaskBarQWidget<>{
 	Q_OBJECT
 	
 	private:
@@ -114,7 +115,7 @@ class TaskManager : public QWidget{
 		}
 		
 	public:
-		TaskManager( QWidget* parent=nullptr ) : QWidget( parent ) {
+		TaskManager( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ) {
 			boxlayout = new QBoxLayout( QBoxLayout::TopToBottom, this );
 			boxlayout->setContentsMargins( 0,0,0,0 );
 			setLayout( boxlayout );
