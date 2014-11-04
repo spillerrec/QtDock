@@ -1,9 +1,10 @@
+#ifndef EXTRA_WIDGETS_HPP
+#define EXTRA_WIDGETS_HPP
+
 #include <QLabel>
 #include <QTime>
 #include <QTimer>
 
-#ifndef EXTRA_WIDGETS_HPP
-#define EXTRA_WIDGETS_HPP
 
 class ClockWidget : public QLabel {
 	Q_OBJECT

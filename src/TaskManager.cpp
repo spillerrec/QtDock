@@ -1,10 +1,20 @@
 
 #include "TaskManager.hpp"
 
-#include <QMouseEvent>
-#include <QProcess>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QProcess>
 
+
+
+Window::Window( WId id ) : id(id) {
+	KWindowInfo info( id, NET::WMVisibleIconName | NET::WMState | NET::WMWindowType );
+	title = info.visibleIconName();
+	auto type = info.windowType( NET::NormalMask );
+	visible = !info.hasState( NET::SkipTaskbar ) && type == 0;
+//	qDebug() << title << " ------ " << visible;
+}
 
 QPixmap TaskGroup::getIcon(){
 	if( icon.isNull() ){
@@ -32,6 +42,7 @@ void TaskGroup::startApplication(){
 
 
 void TaskGroup::paintEvent( QPaintEvent* ) {
+	//TODO: calculate positions dynamically
 	QPainter painter(this);
 	painter.setRenderHint( QPainter::SmoothPixmapTransform );
 	painter.drawPixmap( 0,0, 32,32, getIcon() );
@@ -40,6 +51,7 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 		painter.drawRect( 1,1, 30,30 );
 	
 	auto amount = areVisible();
+	//TODO: properly align it, and draw a circle or something as background
 	if( amount > 1 )
 		painter.drawText( 20, 28, QString::number( amount ) );
 }

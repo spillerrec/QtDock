@@ -2,14 +2,10 @@
 #define TASK_MANAGER_HPP
 
 
-#include <QApplication>
 #include <QBoxLayout>
 #include <QDebug>
 #include <QLabel>
-#include <QPainter>
 #include <QPixmap>
-#include <QTime>
-#include <QTimer>
 #include <QWidget>
 
 #include <kwindowsystem.h>
@@ -28,13 +24,7 @@ class Window{
 		bool visible{ true };
 		
 	public:
-		Window( WId id ) : id(id) {
-			KWindowInfo info( id, NET::WMVisibleIconName | NET::WMState | NET::WMWindowType );
-			title = info.visibleIconName();
-			auto type = info.windowType( NET::NormalMask );
-			visible = !info.hasState( NET::SkipTaskbar ) && type == 0;
-		//	qDebug() << title << " ------ " << visible;
-		}
+		Window( WId id );
 		
 		WId getId() const{ return id; }
 		bool isId( WId id ) const{ return this->id == id; }
