@@ -3,6 +3,9 @@
 
 #include "WindowList.hpp"
 
+#include <QBrush>
+#include <QColor>
+#include <QPen>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
@@ -79,17 +82,24 @@ void TaskGroup::startApplication(){
 
 void TaskGroup::paintEvent( QPaintEvent* ) {
 	//TODO: calculate positions dynamically
+	auto amount = areVisible();
+	
 	QPainter painter(this);
 	painter.setRenderHint( QPainter::SmoothPixmapTransform );
+	
 	painter.drawPixmap( 0,0, 32,32, getIcon() );
 	
 	if( hover )
 		painter.drawRect( 1,1, 30,30 );
 	
-	auto amount = areVisible();
 	//TODO: properly align it, and draw a circle or something as background
 	if( amount > 1 )
 		painter.drawText( 20, 28, QString::number( amount ) );
+	else if( amount == 0 ){
+		painter.setBrush( QBrush( QColor( 0,0,0,127 ) ) );
+		painter.setPen( QPen() );
+		painter.drawRect( 0,0, 32,32 );
+	}
 }
 
 void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
@@ -107,6 +117,10 @@ void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
 					break;
 				default: manager.showWindowList( this ); break; //TODO: show selection menu
 			}
+	}
+	else if( event->button() == Qt::RightButton ){
+		pinned = !pinned;
+		emit pinnedChanged();
 	}
 	else
 		event->ignore();
