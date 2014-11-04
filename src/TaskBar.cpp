@@ -7,7 +7,7 @@
 #include <QApplication>
 #include <QBoxLayout>
 
-TaskBar::TaskBar( QWidget* parent ) : QWidget(parent) {
+TaskBar::TaskBar( QWidget* parent ) : QWidget(parent), settings( "spillerrec", "QtDock" ) {
 	auto manager = new TaskManager( *this );
 	auto clock = new ClockWidget( *this );
 	widgets.push_back( manager );

@@ -17,6 +17,20 @@
 #include <vector>
 
 
+class Application{
+	public:
+		QString app_path;
+		QByteArray class_name;
+		QString working_dir;
+		
+		Application(){ }
+		Application( WId id );
+		Application( QString name ) : app_path(name), class_name(name.toLocal8Bit()) { }
+};
+
+Q_DECLARE_METATYPE(Application)
+Q_DECLARE_METATYPE(QList<Application>)
+
 
 class Window{
 	private:
@@ -46,7 +60,7 @@ class TaskGroup: public TaskBarQWidget<>{
 	Q_OBJECT
 	
 	private:
-		QByteArray name;
+		Application app;
 		QPixmap icon;
 		std::vector<Window> windows;
 		
@@ -60,7 +74,7 @@ class TaskGroup: public TaskBarQWidget<>{
 		
 	public:
 		TaskGroup( WId window, TaskBar& task_bar );
-		TaskGroup( QByteArray application, TaskBar& task_bar );
+		TaskGroup( Application application, TaskBar& task_bar );
 		void addWindow( WId id ){ windows.emplace_back( id ); refresh(); }
 		
 		bool removeWindow( WId id ){
@@ -71,6 +85,8 @@ class TaskGroup: public TaskBarQWidget<>{
 			return windows.size() == 0 && !pinned;
 		}
 		
+		bool isPinned() const{ return pinned; }
+		Application getApp() const{ return app; }
 		void refresh();
 		int amount() const{ return windows.size(); }
 		
@@ -91,6 +107,9 @@ class TaskGroup: public TaskBarQWidget<>{
 			hover = false;
 			update();
 		}
+		
+	signals:
+		void pinnedChanged();
 };
 
 
@@ -107,6 +126,7 @@ class TaskManager : public TaskBarQWidget<>{
 		void add( QString name, TaskGroup* group ){
 			tasks.insert( { name, group } );
 			layout()->addWidget( group );
+			connect( group, SIGNAL(pinnedChanged()), this, SLOT(savePinned()) );
 		}
 		
 	private slots:
@@ -116,6 +136,7 @@ class TaskManager : public TaskBarQWidget<>{
 			for( auto& task : tasks )
 				task.second->refresh();
 		}
+		void savePinned();
 		
 	public:
 		TaskManager( TaskBar& task_bar );

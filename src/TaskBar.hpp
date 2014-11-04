@@ -3,6 +3,7 @@
 #define TASK_BAR_HPP
 
 #include <QDesktopWidget>
+#include <QSettings>
 
 #include <vector>
 
@@ -21,9 +22,12 @@ class TaskBarWidget{
 class TaskBar : public QWidget{
 	private:
 		std::vector<TaskBarWidget*> widgets;
+		QSettings settings;
 		
 	public:
 		TaskBar( QWidget* parent = nullptr );
+		
+		QSettings& getSettings(){ return settings; }
 };
 
 ///Convenience function when using QWidget

@@ -4,8 +4,25 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QVariant>
 #include <QProcess>
 
+
+Application::Application( WId id ){
+	KWindowInfo info( id, 0, NET::WM2WindowClass );
+	class_name = info.windowClassName();
+	app_path = class_name; //TODO: do better!
+	//TODO: working dir to?
+}
+
+QDataStream& operator<<( QDataStream& stream, const Application& app ){
+	stream << app.app_path << app.class_name << app.working_dir;
+	return stream;
+}
+QDataStream& operator>>( QDataStream& stream, Application& app ){
+	stream >> app.app_path >> app.class_name >> app.working_dir;
+	return stream;
+}
 
 
 Window::Window( WId id ) : id(id) {
@@ -24,14 +41,12 @@ TaskGroup::TaskGroup( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ){
 
 TaskGroup::TaskGroup( WId window, TaskBar& task_bar ) : TaskGroup( task_bar ) {
 	addWindow( window );
-	
-	KWindowInfo info( window, 0, NET::WM2WindowClass );
-	name = info.windowClassName();
+	app = Application( window );
 }
 
-TaskGroup::TaskGroup( QByteArray application, TaskBar& task_bar )
+TaskGroup::TaskGroup( Application application, TaskBar& task_bar )
 	:	TaskGroup( task_bar ) {
-	name = application;
+	app = application;
 	pinned = true;
 }
 
@@ -55,8 +70,8 @@ void TaskGroup::refresh(){
 
 void TaskGroup::startApplication(){
 	//TODO: ClassName seems to usually be the name of the executable, but use something more reliable!
-	if( !QProcess::startDetached( name ) )
-		QMessageBox::warning( this, tr("Could not start program"), tr("Could not start executable: ") + name );
+	if( !QProcess::startDetached( app.app_path ) )
+		QMessageBox::warning( this, tr("Could not start program"), tr("Could not start executable: ") + app.app_path );
 }
 
 
@@ -95,23 +110,24 @@ void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
 		event->ignore();
 }
 
+
 TaskManager::TaskManager( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ) {
 	boxlayout = new QBoxLayout( QBoxLayout::TopToBottom, this );
 	boxlayout->setContentsMargins( 0,0,0,0 );
 	setLayout( boxlayout );
 	
-	add( "opera", new TaskGroup( "opera", taskBar() ) );
-	add( "dolphin", new TaskGroup( "dolphin", taskBar() ) );
-	add( "konsole", new TaskGroup( "konsole", taskBar() ) );
-	add( "kate", new TaskGroup( "kate", taskBar() ) );
-	add( "vlc", new TaskGroup( "vlc", taskBar() ) );
-	add( "gimp", new TaskGroup( "gimp", taskBar() ) );
+	qRegisterMetaTypeStreamOperators<Application>( "Application" );
+	qRegisterMetaTypeStreamOperators<QList<Application>>( "QList<Application>" );
+	
+	auto apps = taskBar().getSettings().value( "TaskManager/pinned" ).value<QList<Application>>();
+	for( auto& app : apps )
+		add( app.class_name, new TaskGroup( app, taskBar() ) );
 	
 	for( auto wid : KWindowSystem::windows() )
 		addWindow( wid );
 	
 	auto system = KWindowSystem::self();
-	connect( system, SIGNAL(windowAdded(WId)), this, SLOT(addWindow(WId)) );
+	connect( system, SIGNAL(windowAdded  (WId)), this, SLOT(addWindow   (WId)) );
 	connect( system, SIGNAL(windowRemoved(WId)), this, SLOT(removeWindow(WId)) );
 	connect( system, SIGNAL(currentDesktopChanged(int)), this, SLOT(refresh()) );
 }
@@ -139,4 +155,15 @@ void TaskManager::removeWindow( WId id ){
 			tasks.erase( tasks.find( task.first ) );
 			break;
 		}
+}
+
+void TaskManager::savePinned(){
+	QList<Application> apps;
+	
+	for( auto& task : tasks )
+		if( task.second->isPinned() )
+			apps << task.second->getApp();
+	
+	auto apps_var = QVariant::fromValue<QList<Application>>(apps);
+	taskBar().getSettings().setValue( "TaskManager/pinned", apps_var );
 }
