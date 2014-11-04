@@ -16,6 +16,25 @@ Window::Window( WId id ) : id(id) {
 //	qDebug() << title << " ------ " << visible;
 }
 
+TaskGroup::TaskGroup( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ){
+	setMinimumSize( 32,32 );
+	setMaximumSize( 32,32 );
+}
+
+
+TaskGroup::TaskGroup( WId window, TaskBar& task_bar ) : TaskGroup( task_bar ) {
+	addWindow( window );
+	
+	KWindowInfo info( window, 0, NET::WM2WindowClass );
+	name = info.windowClassName();
+}
+
+TaskGroup::TaskGroup( QByteArray application, TaskBar& task_bar )
+	:	TaskGroup( task_bar ) {
+	name = application;
+	pinned = true;
+}
+
 QPixmap TaskGroup::getIcon(){
 	if( icon.isNull() ){
 		if( windows.size() > 0 )
@@ -26,7 +45,7 @@ QPixmap TaskGroup::getIcon(){
 }
 
 void TaskGroup::refresh(){
-	if( areVisible() > 0 ){
+	if( areVisible() > 0 || pinned ){
 		show();
 		update();
 	}
@@ -75,6 +94,27 @@ void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
 	else
 		event->ignore();
 }
+
+TaskManager::TaskManager( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ) {
+	boxlayout = new QBoxLayout( QBoxLayout::TopToBottom, this );
+	boxlayout->setContentsMargins( 0,0,0,0 );
+	setLayout( boxlayout );
+	
+	add( "opera", new TaskGroup( "opera", taskBar() ) );
+	add( "dolphin", new TaskGroup( "dolphin", taskBar() ) );
+	add( "konsole", new TaskGroup( "konsole", taskBar() ) );
+	add( "kate", new TaskGroup( "kate", taskBar() ) );
+	add( "vlc", new TaskGroup( "vlc", taskBar() ) );
+	add( "gimp", new TaskGroup( "gimp", taskBar() ) );
+	
+	for( auto wid : KWindowSystem::windows() )
+		addWindow( wid );
+	
+	auto system = KWindowSystem::self();
+	connect( system, SIGNAL(windowAdded(WId)), this, SLOT(addWindow(WId)) );
+	connect( system, SIGNAL(windowRemoved(WId)), this, SLOT(removeWindow(WId)) );
+	connect( system, SIGNAL(currentDesktopChanged(int)), this, SLOT(refresh()) );
+}
 	
 
 void TaskManager::addWindow( WId id ){
@@ -85,11 +125,8 @@ void TaskManager::addWindow( WId id ){
 	auto task = tasks.find( task_name );
 	if( task != tasks.end() )
 		task->second->addWindow( id );
-	else{
-		auto new_task = new TaskGroup( task_name, id, taskBar() );
-		tasks.insert( { task_name, new_task } );
-		layout()->addWidget( new_task );
-	}
+	else
+		add( task_name, new TaskGroup( id, taskBar() ) );
 };
 
 

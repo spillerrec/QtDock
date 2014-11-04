@@ -56,13 +56,11 @@ class TaskGroup: public TaskBarQWidget<>{
 		QPixmap getIcon();
 		void startApplication();
 		
+		TaskGroup( TaskBar& task_bar );
+		
 	public:
-		TaskGroup( QByteArray name, WId window, TaskBar& task_bar )
-			:	TaskBarQWidget<>( task_bar ), name(name) {
-			addWindow( window );
-			setMinimumSize( 32,32 );
-			setMaximumSize( 32,32 );
-		}
+		TaskGroup( WId window, TaskBar& task_bar );
+		TaskGroup( QByteArray application, TaskBar& task_bar );
 		void addWindow( WId id ){ windows.emplace_back( id ); refresh(); }
 		
 		bool removeWindow( WId id ){
@@ -106,6 +104,11 @@ class TaskManager : public TaskBarQWidget<>{
 		using TaskGroups = std::map<QString, TaskGroup*>;
 		TaskGroups tasks;
 		
+		void add( QString name, TaskGroup* group ){
+			tasks.insert( { name, group } );
+			layout()->addWidget( group );
+		}
+		
 	private slots:
 		void addWindow( WId id );
 		void removeWindow( WId id );
@@ -115,19 +118,7 @@ class TaskManager : public TaskBarQWidget<>{
 		}
 		
 	public:
-		TaskManager( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ) {
-			boxlayout = new QBoxLayout( QBoxLayout::TopToBottom, this );
-			boxlayout->setContentsMargins( 0,0,0,0 );
-			setLayout( boxlayout );
-			
-			for( auto wid : KWindowSystem::windows() )
-				addWindow( wid );
-			
-			auto system = KWindowSystem::self();
-			connect( system, SIGNAL(windowAdded(WId)), this, SLOT(addWindow(WId)) );
-			connect( system, SIGNAL(windowRemoved(WId)), this, SLOT(removeWindow(WId)) );
-			connect( system, SIGNAL(currentDesktopChanged(int)), this, SLOT(refresh()) );
-		}
+		TaskManager( TaskBar& task_bar );
 		
 		const TaskGroups& getTasks() const{ return tasks; }
 };
