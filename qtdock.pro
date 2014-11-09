@@ -4,6 +4,9 @@ INCLUDEPATH += .
 QT += KWindowSystem
 QT += widgets
 
+LIBS += -lxcb
+QT += x11extras
+
 # C++11 support
 QMAKE_CXXFLAGS += -std=c++11
 
