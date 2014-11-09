@@ -14,47 +14,80 @@
 
 #include <string>
 
-void registerDockbar( QWidget& widget ){
+class StructPartial {
+	private:
+		uint32_t state[12];
+		
+	public:
+		StructPartial(){ for( auto& a : state ) a = 0; }
+		void reserveLeft( unsigned width, unsigned start, unsigned end ){
+			state[0] = width;
+			state[4] = start;
+			state[5] = end;
+		}
+		void reserveRight( unsigned width, unsigned start, unsigned end ){
+			state[1] = width;
+			state[6] = start;
+			state[7] = end;
+		}
+		void reserveTop( unsigned width, unsigned start, unsigned end ){
+			state[3] = width;
+			state[8] = start;
+			state[9] = end;
+		}
+		void reserveBottom( unsigned width, unsigned start, unsigned end ){
+			state[4] = width;
+			state[10] = start;
+			state[11] = end;
+		}
+};
+
+static xcb_atom_t getAtomType( std::string name ){
 	auto conn = QX11Info::connection();
 	
-	std::string name = "_NET_WM_STRUT_PARTIAL";
 	auto atom_cookie = xcb_intern_atom( conn, 1, name.size(), name.c_str() );
-	
 	auto reply = xcb_intern_atom_reply( conn, atom_cookie, nullptr );
+	
 	if( reply ){
 		auto atom = reply->atom;
 		free( reply );
-		
-		
-		const uint32_t state[] = {
-				32	//left
-			,	0	//right
-			,	0	//top
-			,	0	//bottom
-			,	0	//left_start_y
-			,	static_cast<uint32_t>( widget.height() )	//left_end_y
-			,	0	//right_start_y
-			,	0	//right_end_y
-			,	0	//top_start_x
-			,	0	//top_end_x
-			,	0	//bottom_start_x
-			,	0	//bottom_end_x
-			};
-		
-		auto struct_cookie = xcb_change_property( conn, XCB_PROP_MODE_REPLACE, widget.winId()
-			,	atom
-			,	XCB_ATOM_CARDINAL
-			, 32
-			, 12
-			, state
-			);
-		
-		auto err = xcb_request_check( conn, struct_cookie );
-		if( err )
-			qDebug() << err->error_code;
+		return atom;
 	}
-	else
-		qDebug() << "Failed to get _NET_WM_STRUT_PARTIAL atom";
+	else{
+		qDebug() << "Failed to get atom: " << name.c_str();
+		return XCB_NONE;
+	}
+}
+
+void registerDockbar( QWidget& widget ){
+	//TODO: figure out which edge widget is on, or pass it along
+	StructPartial space;
+	space.reserveLeft( widget.width(), widget.x(), widget.x()+widget.height() );
+	
+	auto conn = QX11Info::connection();
+	
+	auto struct_cookie = xcb_change_property(
+			conn, XCB_PROP_MODE_REPLACE, widget.winId()
+		,	getAtomType( "_NET_WM_STRUT_PARTIAL" ), XCB_ATOM_CARDINAL
+		,	32, 12, &space
+		);
+	
+	auto err = xcb_request_check( conn, struct_cookie );
+	if( err )
+		qDebug() << err->error_code;
+	
+	auto window_type_atom = getAtomType( "_NET_WM_WINDOW_TYPE" );
+	auto window_dock_atom = getAtomType( "_NET_WM_WINDOW_TYPE_DOCK" );
+	auto dock_cookie = xcb_change_property(
+			conn, XCB_PROP_MODE_REPLACE, widget.effectiveWinId()
+		,	window_type_atom, XCB_ATOM_ATOM
+		,	32, 1, (unsigned char*)&window_dock_atom
+		);
+	
+	
+	auto err2 = xcb_request_check( conn, dock_cookie );
+	if( err2 )
+		qDebug() << err2->error_code;
 }
 
 TaskBar::TaskBar( QWidget* parent ) : QWidget(parent), settings( "spillerrec", "QtDock" ) {
