@@ -131,11 +131,10 @@ class TaskManager : public TaskBarQWidget<>{
 		class WindowList* list;
 	
 	private:
-		using TaskGroups = std::map<QString, TaskGroup*>;
-		TaskGroups tasks;
+		std::vector<TaskGroup*> tasks;
 		
-		void add( QString name, TaskGroup* group ){
-			tasks.insert( { name, group } );
+		void add( TaskGroup* group ){
+			tasks.push_back( group );
 			layout()->addWidget( group );
 			connect( group, SIGNAL(pinnedChanged()), this, SLOT(savePinned()) );
 		}
@@ -145,14 +144,14 @@ class TaskManager : public TaskBarQWidget<>{
 		void removeWindow( WId id );
 		void refresh(){
 			for( auto& task : tasks )
-				task.second->refresh();
+				task->refresh();
 		}
 		void savePinned();
 		
 	public:
 		TaskManager( TaskBar& task_bar );
 		
-		const TaskGroups& getTasks() const{ return tasks; }
+		const std::vector<TaskGroup*>& getTasks() const{ return tasks; }
 		
 		void showWindowList( TaskGroup* group );
 		

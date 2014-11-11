@@ -141,7 +141,7 @@ TaskManager::TaskManager( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ) {
 	
 	auto apps = taskBar().getSettings().value( "TaskManager/pinned" ).value<QList<Application>>();
 	for( auto& app : apps )
-		add( app.class_name, new TaskGroup( app, *this ) );
+		add( new TaskGroup( app, *this ) );
 	
 	for( auto wid : KWindowSystem::windows() )
 		addWindow( wid );
@@ -158,21 +158,26 @@ void TaskManager::addWindow( WId id ){
 	//TODO: determine the difference between class and name
 	
 	auto task_name = info.windowClassName();
-	auto task = tasks.find( task_name );
-	if( task != tasks.end() )
-		task->second->addWindow( id );
-	else
-		add( task_name, new TaskGroup( id, *this ) );
+	
+	for( auto& task : tasks )
+		if( task->getApp().class_name == task_name ){
+			task->addWindow( id );
+			return;
+		}
+	
+	add( new TaskGroup( id, *this ) );
 };
 
 
 void TaskManager::removeWindow( WId id ){
 	//NOTE: we cannot get the key, so we have to iterate though them all
 	for( auto& task : tasks )
-		if( task.second->removeWindow( id ) ){
-			layout()->removeWidget( task.second );
-			task.second->deleteLater();
-			tasks.erase( tasks.find( task.first ) );
+		if( task->removeWindow( id ) ){
+			layout()->removeWidget( task );
+			task->deleteLater();
+			tasks.erase( std::find_if( tasks.begin(), tasks.end()
+				,	[task]( TaskGroup* p ){ return p == task; }
+				) );
 			break;
 		}
 }
@@ -181,8 +186,8 @@ void TaskManager::savePinned(){
 	QList<Application> apps;
 	
 	for( auto& task : tasks )
-		if( task.second->isPinned() )
-			apps << task.second->getApp();
+		if( task->isPinned() )
+			apps << task->getApp();
 	
 	auto apps_var = QVariant::fromValue<QList<Application>>(apps);
 	taskBar().getSettings().setValue( "TaskManager/pinned", apps_var );
@@ -198,9 +203,9 @@ void TaskManager::showWindowList( TaskGroup* group ){
 void TaskManager::activate( unsigned pos ){
 	unsigned i=0;
 	for( auto& task : tasks )
-		if( task.second->isVisible() ){
+		if( task->isVisible() ){
 			if( i == pos )
-				task.second->activate();
+				task->activate();
 			i++;
 		}
 }
