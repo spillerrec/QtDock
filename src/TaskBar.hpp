@@ -22,12 +22,16 @@ class TaskBarWidget{
 class TaskBar : public QWidget{
 	private:
 		std::vector<TaskBarWidget*> widgets;
+		class TaskManager* manager;
 		QSettings settings;
 		
 	public:
 		TaskBar( QWidget* parent = nullptr );
 		
 		QSettings& getSettings(){ return settings; }
+		
+	public slots:
+		void activate( int pos, bool shift=false );
 };
 
 ///Convenience function when using QWidget

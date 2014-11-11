@@ -58,7 +58,9 @@ TaskGroup::TaskGroup( Application application, TaskManager& manager )
 QPixmap TaskGroup::getIcon(){
 	if( icon.isNull() ){
 		if( windows.size() > 0 )
-			icon = windows.front().icon();
+			icon = windows.front().icon()
+				.scaled( 32, 32, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
+			//TODO: clear icon when changing size
 		//TODO: find application icon
 	}
 	return icon;
@@ -87,7 +89,7 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	QPainter painter(this);
 	painter.setRenderHint( QPainter::SmoothPixmapTransform );
 	
-	painter.drawPixmap( 0,0, 32,32, getIcon() );
+	painter.drawPixmap( 0,0, getIcon() );
 	
 	if( hover )
 		painter.drawRect( 1,1, 30,30 );
@@ -191,5 +193,15 @@ void TaskManager::showWindowList( TaskGroup* group ){
 	list->show();
 //	list->move( 50, 200 );
 	//TODO: position
+}
+
+void TaskManager::activate( unsigned pos ){
+	unsigned i=0;
+	for( auto& task : tasks )
+		if( task.second->isVisible() ){
+			if( i == pos )
+				task.second->activate();
+			i++;
+		}
 }
 

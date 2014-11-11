@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = QtDock
 INCLUDEPATH += .
-QT += KWindowSystem
+QT += KWindowSystem KGlobalAccel
 QT += widgets
 
 LIBS += -lxcb

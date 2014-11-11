@@ -86,6 +86,14 @@ class TaskGroup: public TaskBarQWidget<>{
 			return windows.size() == 0 && !pinned;
 		}
 		
+		void activate(){
+			for( auto& window : windows )
+				if( window.isVisible() ){
+					window.activate();
+					break;
+				}
+		}
+		
 		std::vector<Window>& getWindows(){ return windows; }
 		
 		bool isPinned() const{ return pinned; }
@@ -147,6 +155,8 @@ class TaskManager : public TaskBarQWidget<>{
 		const TaskGroups& getTasks() const{ return tasks; }
 		
 		void showWindowList( TaskGroup* group );
+		
+		void activate( unsigned pos );
 };
 
 

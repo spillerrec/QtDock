@@ -4,9 +4,12 @@
 #include "extraWidgets.hpp"
 #include "TaskManager.hpp"
 
+#include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QX11Info>
+
+#include <KGlobalAccel>
 
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
@@ -90,8 +93,20 @@ void registerDockbar( QWidget& widget ){
 		qDebug() << err2->error_code;
 }
 
+static bool registerShortcut( TaskBar& bar, int index ){
+	//TODO: do shift as well
+	QKeySequence keys( Qt::META + Qt::Key_1 + index );
+	
+	auto shortcut = new QAction( &bar );
+	shortcut->setShortcut( keys );
+	shortcut->setObjectName( "QtDockShortcut" + QString::number(index+1) );
+	
+	QObject::connect( shortcut, &QAction::triggered, [&,index](){ bar.activate( index ); } );
+	return KGlobalAccel::setGlobalShortcut( shortcut, keys );
+}
+
 TaskBar::TaskBar( QWidget* parent ) : QWidget(parent), settings( "spillerrec", "QtDock" ) {
-	auto manager = new TaskManager( *this );
+	manager = new TaskManager( *this );
 	auto clock = new ClockWidget( *this );
 	widgets.push_back( manager );
 	widgets.push_back( clock );
@@ -111,6 +126,16 @@ TaskBar::TaskBar( QWidget* parent ) : QWidget(parent), settings( "spillerrec", "
 	move( screen.topLeft() );
 	resize( 32, screen.height() );
 	registerDockbar( *this );
+	
+	//Register global short-cuts
+	for( unsigned i=0; i<9; ++i )
+		if( !registerShortcut( *this, i ) )
+			qDebug() << "Error registering shortcut META:" << i;
+}
+
+void TaskBar::activate( int pos, bool shift ){
+	//TODO:
+	manager->activate( pos );
 }
 
 	
