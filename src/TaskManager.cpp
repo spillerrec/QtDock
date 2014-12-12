@@ -104,22 +104,26 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	}
 }
 
+void TaskGroup::activate( Qt::KeyboardModifiers mods ){
+	if( mods & Qt::ShiftModifier )
+		startApplication();
+	else
+		switch( areVisible() ){
+			case 0: startApplication(); break;
+			case 1:
+					for( auto& window : windows )
+						if( window.isVisible() ){
+							window.activate();
+							break;
+						}
+				break;
+			default: manager.showWindowList( this ); break; //TODO: show selection menu
+		}
+}
+
 void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
-	if( event->button() == Qt::LeftButton ){
-		if( event->modifiers() & Qt::ShiftModifier )
-			startApplication();
-		else
-			switch( areVisible() ){
-				case 0: startApplication(); break;
-				case 1:
-						for( auto& window : windows )
-							if( window.isVisible() ){
-								window.activate();
-							}
-					break;
-				default: manager.showWindowList( this ); break; //TODO: show selection menu
-			}
-	}
+	if( event->button() == Qt::LeftButton )
+		activate( event->modifiers() );
 	else if( event->button() == Qt::RightButton ){
 		pinned = !pinned;
 		emit pinnedChanged();
@@ -200,12 +204,12 @@ void TaskManager::showWindowList( TaskGroup* group ){
 	//TODO: position
 }
 
-void TaskManager::activate( unsigned pos ){
+void TaskManager::activate( unsigned pos, bool shift ){
 	unsigned i=0;
 	for( auto& task : tasks )
 		if( task->isVisible() ){
 			if( i == pos )
-				task->activate();
+				task->activate( shift ? Qt::ShiftModifier : Qt::NoModifier );
 			i++;
 		}
 }

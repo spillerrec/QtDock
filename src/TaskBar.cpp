@@ -135,7 +135,7 @@ TaskBar::TaskBar( QWidget* parent ) : QWidget(parent), settings( "spillerrec", "
 
 void TaskBar::activate( int pos, bool shift ){
 	//TODO:
-	manager->activate( pos );
+	manager->activate( pos, shift );
 }
 
 	

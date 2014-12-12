@@ -86,13 +86,7 @@ class TaskGroup: public TaskBarQWidget<>{
 			return windows.size() == 0 && !pinned;
 		}
 		
-		void activate(){
-			for( auto& window : windows )
-				if( window.isVisible() ){
-					window.activate();
-					break;
-				}
-		}
+		void activate( Qt::KeyboardModifiers mods = Qt::NoModifier );
 		
 		std::vector<Window>& getWindows(){ return windows; }
 		
@@ -155,7 +149,7 @@ class TaskManager : public TaskBarQWidget<>{
 		
 		void showWindowList( TaskGroup* group );
 		
-		void activate( unsigned pos );
+		void activate( unsigned pos, bool shift = false );
 };
 
 
