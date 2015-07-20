@@ -39,8 +39,8 @@ Window::Window( WId id ) : id(id) {
 }
 
 TaskGroup::TaskGroup( TaskManager& manager ) : TaskBarQWidget<>( manager.taskBar() ), manager(manager){
-	setMinimumSize( 32,32 );
-	setMaximumSize( 32,32 );
+	setMinimumSize( 36,36 );
+	setMaximumSize( 36,36 );
 }
 
 
@@ -89,19 +89,19 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	QPainter painter(this);
 	painter.setRenderHint( QPainter::SmoothPixmapTransform );
 	
-	painter.drawPixmap( 0,0, getIcon() );
+	//Pinned, but not running applications
+	if( amount == 0 )
+		painter.setOpacity( 0.3 );
 	
-	if( hover )
-		painter.drawRect( 1,1, 30,30 );
+	painter.drawPixmap( 2,2, getIcon() );
+	painter.setOpacity( 1.0 );
 	
 	//TODO: properly align it, and draw a circle or something as background
 	if( amount > 1 )
-		painter.drawText( 20, 28, QString::number( amount ) );
-	else if( amount == 0 ){
-		painter.setBrush( QBrush( QColor( 0,0,0,127 ) ) );
-		painter.setPen( QPen() );
-		painter.drawRect( 0,0, 32,32 );
-	}
+		painter.drawText( 24, 32, QString::number( amount ) );
+	
+	if( hover )
+		painter.drawRect( 0,0, 34,34 );
 }
 
 void TaskGroup::activate( Qt::KeyboardModifiers mods ){

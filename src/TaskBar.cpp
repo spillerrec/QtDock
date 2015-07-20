@@ -119,12 +119,11 @@ TaskBar::TaskBar( QWidget* parent ) : QWidget(parent), settings( "spillerrec", "
 	boxlayout->addWidget( clock );
 	
 	setWindowFlags( Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
-	setStyleSheet( "* {background: black;}" );
 	KWindowSystem::setOnAllDesktops( winId(), true );
 	
 	auto screen = QApplication::desktop()->availableGeometry();
 	move( screen.topLeft() );
-	resize( 32, screen.height() );
+	resize( 36, screen.height() );
 	registerDockbar( *this );
 	
 	//Register global short-cuts
