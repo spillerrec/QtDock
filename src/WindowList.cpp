@@ -4,6 +4,7 @@
 #include "TaskManager.hpp"
 
 #include <QLabel>
+#include <QFrame>
 #include <QVBoxLayout>
 
 class WindowItem : public QLabel {
@@ -27,7 +28,13 @@ WindowList::WindowList( QWidget* parent ) : QWidget(parent){
 	hide();
 	
 	setLayout( new QVBoxLayout( this ) );
+	layout()->setContentsMargins( 4, 4, 4, 4 );
 	layout()->addWidget( title = new QLabel( this ) );
+	title->setAlignment( Qt::AlignHCenter );
+	
+	auto frame = new QFrame( this );
+	frame->setFrameShape( QFrame::HLine );
+	layout()->addWidget( frame );
 }
 
 void WindowList::changeGroup( TaskGroup* new_group ){
@@ -40,7 +47,7 @@ void WindowList::changeGroup( TaskGroup* new_group ){
 	windows.clear();
 	
 	if( group ){
-		title->setText( group->getApp().class_name );
+		title->setText( "<b>" + group->getApp().class_name + "</b>" );
 		
 		for( auto& window : group->getWindows() ){
 			if( window.isVisible() ){
