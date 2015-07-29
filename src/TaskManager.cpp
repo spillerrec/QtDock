@@ -31,11 +31,14 @@ QDataStream& operator>>( QDataStream& stream, Application& app ){
 
 
 Window::Window( WId id ) : id(id) {
-	KWindowInfo info( id, NET::WMVisibleIconName | NET::WMState | NET::WMWindowType );
-	title = info.visibleIconName();
+	KWindowInfo info( id, NET::WMState | NET::WMWindowType );
 	auto type = info.windowType( NET::NormalMask );
 	visible = !info.hasState( NET::SkipTaskbar ) && type == 0;
 //	qDebug() << title << " ------ " << visible;
+}
+
+QString Window::getTitle() const{
+	return KWindowInfo( id, NET::WMVisibleIconName ).visibleIconName();
 }
 
 TaskGroup::TaskGroup( TaskManager& manager ) : TaskBarQWidget<>( manager.taskBar() ), manager(manager){
@@ -101,7 +104,7 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 		painter.drawText( 24, 32, QString::number( amount ) );
 	
 	if( hover )
-		painter.drawRect( 0,0, 34,34 );
+		painter.drawRect( 0,0, 35,35 );
 }
 
 void TaskGroup::activate( Qt::KeyboardModifiers mods ){

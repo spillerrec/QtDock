@@ -35,7 +35,6 @@ Q_DECLARE_METATYPE(QList<Application>)
 class Window{
 	private:
 		WId id;
-		QString title;
 		bool visible{ true };
 		
 	public:
@@ -44,7 +43,7 @@ class Window{
 		WId getId() const{ return id; }
 		bool isId( WId id ) const{ return this->id == id; }
 		
-		QString getTitle() const{ return title; }
+		QString getTitle() const;
 		
 		bool isVisible( int desktop=KWindowSystem::currentDesktop() ) const{
 			KWindowInfo info( id, NET::WMDesktop );
