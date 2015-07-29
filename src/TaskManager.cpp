@@ -116,7 +116,10 @@ void TaskGroup::activate( Qt::KeyboardModifiers mods ){
 			case 1:
 					for( auto& window : windows )
 						if( window.isVisible() ){
-							window.activate();
+							if( window.isActive() )
+								window.minimize();
+							else
+								window.activate();
 							break;
 						}
 				break;

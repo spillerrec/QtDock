@@ -52,7 +52,9 @@ class Window{
 		
 		QPixmap icon() const{ return KWindowSystem::icon( id ); }
 		
+		bool isActive() const{ return KWindowSystem::activeWindow() == id; }
 		void activate(){ KWindowSystem::forceActiveWindow( id ); }
+		void minimize(){ KWindowSystem::minimizeWindow( id ); }
 };
 
 class TaskGroup: public TaskBarQWidget<>{
