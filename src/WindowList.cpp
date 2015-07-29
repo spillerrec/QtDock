@@ -6,19 +6,36 @@
 #include <QLabel>
 #include <QFrame>
 #include <QVBoxLayout>
+#include <QKeyEvent>
 
 class WindowItem : public QLabel {
 	private:
 		Window* w;
+		WindowList* parent;
 	
 	public:
-		WindowItem( Window* w, QWidget* parent ) : QLabel(parent), w(w){
+		WindowItem( Window* w, WindowList* parent )
+			:	QLabel(parent), w(w), parent(parent) {
 			setText( w->getTitle() );
+			setFocusPolicy( Qt::StrongFocus );
+			setStyleSheet( "*:focus{ background:palette(highlight); color:palette(highlighted-text) }" );
+		}
+		
+		void activate(){
+			w->activate();
+			parent->hide();
 		}
 		
 	protected:
-		virtual void mouseReleaseEvent( QMouseEvent* ) override{
-			w->activate();
+		virtual void mouseReleaseEvent( QMouseEvent* ) override
+			{ activate(); }
+		
+		virtual void enterEvent( QEvent* ) override
+			{ setFocus(); }
+			
+		virtual void keyReleaseEvent( QKeyEvent* event ) override{
+			if( event->key() == Qt::Key_Return )
+				activate();
 		}
 };
 
