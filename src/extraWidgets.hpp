@@ -4,7 +4,7 @@
 #include "TaskBar.hpp"
 
 #include <QLabel>
-#include <QTime>
+#include <QDateTime>
 #include <QTimer>
 
 
@@ -16,13 +16,16 @@ class ClockWidget : public TaskBarQWidget<QLabel> {
 		
 	public:
 		ClockWidget( TaskBar& task_bar ) : TaskBarQWidget<QLabel>(task_bar), t(this) {
+			setAlignment( Qt::AlignHCenter );
 			connect( &t, SIGNAL(timeout()), this, SLOT(updateTime()) );
 			t.start( 1000 );
 			updateTime();
 		}
 		
 	private slots:
-		void updateTime(){ setText( QTime::currentTime().toString( "hh:mm" ) ); }
+		void updateTime(){
+			setText( QDateTime::currentDateTime().toString( "hh:mm\nM/dd" ) );
+		}
 };
 
 #endif
