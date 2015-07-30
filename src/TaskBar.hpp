@@ -30,6 +30,9 @@ class TaskBar : public QWidget{
 		
 		QSettings& getSettings(){ return settings; }
 		
+	protected:
+		void contextMenuEvent( QContextMenuEvent* ) override;
+		
 	public slots:
 		void activate( int pos, bool shift=false );
 };
