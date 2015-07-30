@@ -21,11 +21,11 @@ Application::Application( WId id ){
 }
 
 QDataStream& operator<<( QDataStream& stream, const Application& app ){
-	stream << app.app_path << app.class_name << app.working_dir;
+	stream << app.app_path << app.class_name << app.working_dir << app.icon;
 	return stream;
 }
 QDataStream& operator>>( QDataStream& stream, Application& app ){
-	stream >> app.app_path >> app.class_name >> app.working_dir;
+	stream >> app.app_path >> app.class_name >> app.working_dir >> app.icon;
 	return stream;
 }
 
@@ -59,14 +59,14 @@ TaskGroup::TaskGroup( Application application, TaskManager& manager )
 }
 
 QPixmap TaskGroup::getIcon(){
-	if( icon.isNull() ){
+	if( app.icon.isNull() ){
 		if( windows.size() > 0 )
-			icon = windows.front().icon()
+			app.icon = windows.front().icon()
 				.scaled( 32, 32, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
 			//TODO: clear icon when changing size
 		//TODO: find application icon
 	}
-	return icon;
+	return app.icon;
 }
 
 void TaskGroup::refresh(){
@@ -127,6 +127,10 @@ void TaskGroup::activate( Qt::KeyboardModifiers mods ){
 		}
 }
 
+void TaskGroup::mousePressEvent( QMouseEvent* event ) {
+	if( event->button() == Qt::LeftButton || event->button() == Qt::RightButton )
+		event->accept();
+}
 void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
 	if( event->button() == Qt::LeftButton )
 		activate( event->modifiers() );

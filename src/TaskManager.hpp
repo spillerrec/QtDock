@@ -22,6 +22,7 @@ class Application{
 		QString app_path;
 		QByteArray class_name;
 		QString working_dir;
+		QPixmap icon;
 		
 		Application(){ }
 		Application( WId id );
@@ -63,7 +64,6 @@ class TaskGroup: public TaskBarQWidget<>{
 	private:
 		class TaskManager& manager;
 		Application app;
-		QPixmap icon;
 		std::vector<Window> windows;
 		
 		bool pinned{ false };
@@ -103,6 +103,7 @@ class TaskGroup: public TaskBarQWidget<>{
 		
 	protected:
 		virtual void paintEvent( QPaintEvent* event ) override;
+		virtual void mousePressEvent( QMouseEvent* event ) override;
 		virtual void mouseReleaseEvent( QMouseEvent* event ) override;
 		
 		virtual void enterEvent( QEvent* ) override{
