@@ -8,7 +8,7 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QMenu>
-#include <QContextMenuEvent>
+#include <QMouseEvent>
 
 #include <KGlobalAccel>
 
@@ -62,9 +62,13 @@ void TaskBar::activate( int pos, bool shift ){
 	manager->activate( pos, shift );
 }
 
-void TaskBar::contextMenuEvent( QContextMenuEvent* event ){
-	QMenu menu( this );
-	connect( menu.addAction( "Exit" ), &QAction::triggered
-		, [this](){ this->close(); } );
-	menu.exec( event->globalPos() );
+void TaskBar::mousePressEvent( QMouseEvent* event ){
+	if( event->button() == Qt::RightButton ){
+		QMenu menu( this );
+		connect( menu.addAction( "Exit" ), &QAction::triggered
+			, [this](){ this->close(); } );
+		menu.exec( event->globalPos() );
+	}
+	else
+		event->ignore();
 }
