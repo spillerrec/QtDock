@@ -30,6 +30,7 @@ QString Window::getTitle() const{
 TaskGroup::TaskGroup( TaskManager& manager ) : TaskBarQWidget<>( manager.taskBar() ), manager(manager){
 	setMinimumSize( 36,36 );
 	setMaximumSize( 36,36 );
+	setAttribute( Qt::WA_Hover, true );
 }
 
 
@@ -89,7 +90,7 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	if( amount > 1 )
 		painter.drawText( 24, 32, QString::number( amount ) );
 	
-	if( hover )
+	if( underMouse() )
 		painter.drawRect( 0,0, 35,35 );
 }
 

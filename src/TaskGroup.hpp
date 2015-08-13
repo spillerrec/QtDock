@@ -62,7 +62,7 @@ class TaskGroup: public TaskBarQWidget<>{
 		std::vector<Window> windows;
 		
 		bool pinned{ false };
-		bool hover{ false }, active{ false };
+		bool active{ false };
 		
 		QPixmap getIcon();
 		void startApplication();
@@ -101,15 +101,6 @@ class TaskGroup: public TaskBarQWidget<>{
 		virtual void mousePressEvent( QMouseEvent* event ) override;
 		virtual void moveEvent( QMoveEvent* ) override { }
 		virtual void mouseReleaseEvent( QMouseEvent* event ) override;
-		
-		virtual void enterEvent( QEvent* ) override{
-			hover = true;
-			update();
-		}
-		virtual void leaveEvent( QEvent* ) override{
-			hover = false;
-			update();
-		}
 		
 	signals:
 		void pinnedChanged();
