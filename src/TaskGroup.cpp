@@ -18,9 +18,10 @@ Application::Application( WId id ){
 
 Window::Window( WId id ) : id(id) {
 	KWindowInfo info( id, NET::WMState | NET::WMWindowType );
-	auto type = info.windowType( NET::NormalMask );
-	visible = !info.hasState( NET::SkipTaskbar ) && type == 0;
-//	qDebug() << title << " ------ " << visible;
+	auto type = info.windowType( NET::AllTypesMask );
+	auto view_type = type == NET::Normal || type == NET::Unknown;
+	visible = !info.hasState( NET::SkipTaskbar ) && view_type;
+//	qDebug() << getTitle() << " ------ " << visible << "---";
 }
 
 QString Window::getTitle() const{
