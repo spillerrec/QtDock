@@ -22,6 +22,8 @@ class ClockWidget : public TaskBarQWidget<QLabel> {
 			updateTime();
 		}
 		
+		virtual void mousePressEvent( QMouseEvent* event ) override;
+		
 	private slots:
 		void updateTime(){
 			setText( QDateTime::currentDateTime().toString( "hh:mm\nM/dd" ) );
