@@ -82,8 +82,7 @@ void TaskManager::savePinned(){
 void TaskManager::showWindowList( TaskGroup* group ){
 	list->changeGroup( group );
 	list->show();
-	list->move( width(), group->pos().y() );
-	//TODO: position when taskbar is positioned differently
+        positionPopup( *this, *list, {width()/2, group->pos().y() + group->width()/2} );
 }
 
 void TaskManager::activate( unsigned pos, bool shift ){

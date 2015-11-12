@@ -23,4 +23,6 @@ class WindowList : public QWidget{
 		void changeGroup( TaskGroup* new_group );
 };
 
+void positionPopup( QWidget& parent, QWidget& popup, QPoint parent_offset );
+
 #endif
