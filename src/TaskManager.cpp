@@ -20,8 +20,6 @@ TaskManager::TaskManager( TaskBar& task_bar ) : TaskBarQWidget<>( task_bar ) {
 	boxlayout->setContentsMargins( 0,0,0,0 );
 	setLayout( boxlayout );
 	
-	list = new WindowList( &task_bar );
-	
 	qRegisterMetaTypeStreamOperators<Application>( "Application" );
 	qRegisterMetaTypeStreamOperators<QList<Application>>( "QList<Application>" );
 	
@@ -80,9 +78,10 @@ void TaskManager::savePinned(){
 }
 
 void TaskManager::showWindowList( TaskGroup* group ){
-	list->changeGroup( group );
+	auto list = new WindowList( task_bar );
 	list->show();
-        positionPopup( *this, *list, {width()/2, group->pos().y() + group->width()/2} );
+	list->changeGroup( group );
+	positionPopup( *this, *list, {width()/2, group->pos().y() + group->width()/2} );
 }
 
 void TaskManager::activate( unsigned pos, bool shift ){

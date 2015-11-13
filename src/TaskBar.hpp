@@ -10,7 +10,7 @@
 class TaskBar;
 
 class TaskBarWidget{
-	private:
+	protected:
 		TaskBar* task_bar;
 	
 	public:

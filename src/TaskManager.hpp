@@ -23,7 +23,6 @@ class TaskManager : public TaskBarQWidget<>{
 	
 	private:
 		QBoxLayout* boxlayout;
-		class WindowList* list;
 	
 	private:
 		std::vector<TaskGroup*> tasks;

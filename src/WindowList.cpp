@@ -26,7 +26,7 @@ class WindowItem : public QLabel {
 		
 		void activate(){
 			w->activate();
-			parent->hide();
+			parent->close();
 		}
 		
 	protected:
@@ -45,7 +45,6 @@ class WindowItem : public QLabel {
 
 WindowList::WindowList( QWidget* parent ) : QWidget(parent){
 	setWindowFlags( Qt::Popup );
-	hide();
 	
 	setLayout( new QVBoxLayout( this ) );
 	layout()->setContentsMargins( 4, 4, 4, 4 );
