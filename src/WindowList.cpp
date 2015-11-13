@@ -43,41 +43,32 @@ class WindowItem : public QLabel {
 };
 
 
-WindowList::WindowList( QWidget* parent ) : QWidget(parent){
+WindowList::WindowList( TaskGroup& group, QWidget* parent ) : QWidget(parent){
 	setWindowFlags( Qt::Popup );
+	setAttribute( Qt::WA_DeleteOnClose );
 	
 	setLayout( new QVBoxLayout( this ) );
 	layout()->setContentsMargins( 4, 4, 4, 4 );
-	layout()->addWidget( title = new QLabel( this ) );
+	
+	//Add Header
+	auto title = new QLabel( this );
+	title->setText( "<b>" + group.getApp().class_name + "</b>" );
 	title->setAlignment( Qt::AlignHCenter );
+	layout()->addWidget( title );
 	
 	auto frame = new QFrame( this );
 	frame->setFrameShape( QFrame::HLine );
 	layout()->addWidget( frame );
-}
 
-void WindowList::changeGroup( TaskGroup* new_group ){
-	group = new_group;
-	
-	for( auto& win : windows ){
-		layout()->removeWidget( win );
-		win->deleteLater();
-	}
-	windows.clear();
-	
-	if( group ){
-		title->setText( "<b>" + group->getApp().class_name + "</b>" );
-		
-		for( auto& window : group->getWindows() ){
-			if( window.isVisible() ){
-				auto item = new WindowItem( &window, this );
-				layout()->addWidget( item );
-				windows << item;
-			}
+	//Add WindowItems
+	for( auto& window : group.getWindows() ){
+		if( window.isVisible() ){
+			auto item = new WindowItem( &window, this );
+			layout()->addWidget( item );
+			windows << item;
 		}
 	}
-	
-	update();
+        
 }
 
 void positionPopup( QWidget& parent, QWidget& popup, QPoint parent_offset ){

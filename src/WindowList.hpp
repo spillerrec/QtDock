@@ -12,15 +12,10 @@ class QLabel;
 
 class WindowList : public QWidget{
 	private:
-		TaskGroup* group{ nullptr };
 		QList<WindowItem*> windows;
-		
-		QLabel* title;
 	
 	public:
-		WindowList( QWidget* parent );
-		
-		void changeGroup( TaskGroup* new_group );
+		WindowList( TaskGroup& group, QWidget* parent=nullptr );
 };
 
 void positionPopup( QWidget& parent, QWidget& popup, QPoint parent_offset );

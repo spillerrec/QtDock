@@ -77,11 +77,10 @@ void TaskManager::savePinned(){
 	taskBar().getSettings().setValue( "TaskManager/pinned", apps_var );
 }
 
-void TaskManager::showWindowList( TaskGroup* group ){
-	auto list = new WindowList( task_bar );
+void TaskManager::showWindowList( TaskGroup& group ){
+	auto list = new WindowList( group, this ); //TODO: make sure we have a group
 	list->show();
-	list->changeGroup( group );
-	positionPopup( *this, *list, {width()/2, group->pos().y() + group->width()/2} );
+	positionPopup( *this, *list, {width()/2, group.pos().y() + group.width()/2} );
 }
 
 void TaskManager::activate( unsigned pos, bool shift ){
