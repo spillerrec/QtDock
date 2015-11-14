@@ -4,21 +4,32 @@
 #include "TaskManager.hpp"
 
 #include <QLabel>
+#include <QPushButton>
 #include <QFrame>
-#include <QVBoxLayout>
+#include <QBoxLayout>
 #include <QKeyEvent>
 #include <QApplication>
 #include <QDesktopWidget>
 
-class WindowItem : public QLabel {
+class WindowItem : public QWidget {
 	private:
 		Window& w;
 		WindowList& parent;
 	
 	public:
 		WindowItem( Window& w, WindowList& parent )
-			:	QLabel(&parent), w(w), parent(parent) {
-			setText( w.getTitle() );
+			:	QWidget(&parent), w(w), parent(parent) {
+			setLayout( new QHBoxLayout( this ) );
+			layout()->setContentsMargins( 0, 0, 0, 0 );
+			layout()->addWidget( new QLabel( w.getTitle(), this ) );
+			
+			auto close_btn = new QPushButton( QIcon::fromTheme("window-close"), "", this );
+			close_btn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+			close_btn->setFocusPolicy( Qt::NoFocus );
+			close_btn->setFlat( true );
+			layout()->addWidget( close_btn );
+			connect( close_btn, &QPushButton::clicked, [&](){ close(); } );
+			
 			setFocusPolicy( Qt::StrongFocus );
 			setStyleSheet( "*:focus{ background:palette(highlight); color:palette(highlighted-text) }" );
 		}
@@ -28,9 +39,19 @@ class WindowItem : public QLabel {
 			parent.close();
 		}
 		
+		void close(){
+			w.close();
+			parent.close();
+		}
+		
 	protected:
-		virtual void mouseReleaseEvent( QMouseEvent* ) override
-			{ activate(); }
+		virtual void mouseReleaseEvent( QMouseEvent* event ) override{
+			switch( event->button() ){
+				case Qt::LeftButton: activate(); break;
+				case Qt::MiddleButton: close(); break;
+				default: event->ignore();
+			}
+		}
 		
 		virtual void enterEvent( QEvent* ) override
 			{ setFocus(); }
