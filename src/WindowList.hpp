@@ -11,9 +11,6 @@ class WindowItem;
 class QLabel;
 
 class WindowList : public QWidget{
-	private:
-		QList<WindowItem*> windows;
-	
 	public:
 		WindowList( TaskGroup& group, QWidget* parent=nullptr );
 };

@@ -9,24 +9,23 @@
 #include <QKeyEvent>
 #include <QApplication>
 #include <QDesktopWidget>
-#include <QDebug>
 
 class WindowItem : public QLabel {
 	private:
-		Window* w;
-		WindowList* parent;
+		Window& w;
+		WindowList& parent;
 	
 	public:
-		WindowItem( Window* w, WindowList* parent )
-			:	QLabel(parent), w(w), parent(parent) {
-			setText( w->getTitle() );
+		WindowItem( Window& w, WindowList& parent )
+			:	QLabel(&parent), w(w), parent(parent) {
+			setText( w.getTitle() );
 			setFocusPolicy( Qt::StrongFocus );
 			setStyleSheet( "*:focus{ background:palette(highlight); color:palette(highlighted-text) }" );
 		}
 		
 		void activate(){
-			w->activate();
-			parent->close();
+			w.activate();
+			parent.close();
 		}
 		
 	protected:
@@ -61,14 +60,9 @@ WindowList::WindowList( TaskGroup& group, QWidget* parent ) : QWidget(parent){
 	layout()->addWidget( frame );
 
 	//Add WindowItems
-	for( auto& window : group.getWindows() ){
-		if( window.isVisible() ){
-			auto item = new WindowItem( &window, this );
-			layout()->addWidget( item );
-			windows << item;
-		}
-	}
-        
+	for( auto& window : group.getWindows() )
+		if( window.isVisible() )
+			layout()->addWidget( new WindowItem( window, *this ) );
 }
 
 void positionPopup( QWidget& parent, QWidget& popup, QPoint parent_offset ){
