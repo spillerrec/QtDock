@@ -2,6 +2,7 @@
 #include "TaskBar.hpp"
 
 #include "extraWidgets.hpp"
+#include "TrayWidget.hpp"
 #include "TaskManager.hpp"
 
 #include <QAction>
@@ -28,14 +29,17 @@ static bool registerShortcut( TaskBar& bar, int index ){
 TaskBar::TaskBar( QWidget* parent ) : QWidget(parent), settings( "spillerrec", "QtDock" ) {
 	manager = new TaskManager( *this );
 	auto clock = new ClockWidget( *this );
+        auto tray = new TrayWidget( *this );
 	widgets.push_back( manager );
 	widgets.push_back( clock );
+        widgets.push_back( tray );
 	
 	auto boxlayout = new QBoxLayout( QBoxLayout::TopToBottom, this );
 	boxlayout->setContentsMargins( 0,0,0,0 );
 	setLayout( boxlayout );
 	boxlayout->addWidget( manager );
 	boxlayout->addStretch();
+        boxlayout->addWidget( tray );
 	boxlayout->addWidget( clock );
 	
 	setWindowFlags( Qt::WindowDoesNotAcceptFocus | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
