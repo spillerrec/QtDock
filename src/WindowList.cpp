@@ -4,77 +4,120 @@
 #include "TaskManager.hpp"
 
 #include <QLabel>
+#include <QPushButton>
 #include <QFrame>
-#include <QVBoxLayout>
+#include <QBoxLayout>
 #include <QKeyEvent>
+#include <QApplication>
+#include <QDesktopWidget>
 
-class WindowItem : public QLabel {
+class WindowItem : public QWidget {
 	private:
-		Window* w;
-		WindowList* parent;
+		Window& w;
+		WindowList& parent;
 	
 	public:
-		WindowItem( Window* w, WindowList* parent )
-			:	QLabel(parent), w(w), parent(parent) {
-			setText( w->getTitle() );
+		WindowItem( Window& w, WindowList& parent )
+			:	QWidget(&parent), w(w), parent(parent) {
+			setLayout( new QHBoxLayout( this ) );
+			layout()->setContentsMargins( 0, 0, 0, 0 );
+			layout()->addWidget( new QLabel( w.getTitle(), this ) );
+			
+			auto close_btn = new QPushButton( QIcon::fromTheme("window-close"), "", this );
+			close_btn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+			close_btn->setFocusPolicy( Qt::NoFocus );
+			close_btn->setFlat( true );
+			layout()->addWidget( close_btn );
+			connect( close_btn, &QPushButton::clicked, [&](){ close(); } );
+			
 			setFocusPolicy( Qt::StrongFocus );
 			setStyleSheet( "*:focus{ background:palette(highlight); color:palette(highlighted-text) }" );
 		}
 		
 		void activate(){
-			w->activate();
-			parent->hide();
+			w.activate();
+			parent.close();
+		}
+		
+		void close(){
+			w.close();
+			parent.close();
 		}
 		
 	protected:
-		virtual void mouseReleaseEvent( QMouseEvent* ) override
-			{ activate(); }
+		virtual void mouseReleaseEvent( QMouseEvent* event ) override{
+			switch( event->button() ){
+				case Qt::LeftButton: activate(); break;
+				case Qt::MiddleButton: close(); break;
+				default: event->ignore();
+			}
+		}
 		
 		virtual void enterEvent( QEvent* ) override
 			{ setFocus(); }
 			
 		virtual void keyReleaseEvent( QKeyEvent* event ) override{
-			if( event->key() == Qt::Key_Return )
-				activate();
+			switch( event->key() ){
+				case Qt::Key_Return: activate(); break;
+				case Qt::Key_Delete: close(); break;
+				
+				case Qt::Key_Right:
+				case Qt::Key_Down:
+					focusNextChild(); break;
+				
+				case Qt::Key_Left:
+				case Qt::Key_Up:
+					focusPreviousChild(); break;
+				
+				default: event->ignore();
+			}
 		}
 };
 
 
-WindowList::WindowList( QWidget* parent ) : QWidget(parent){
+WindowList::WindowList( TaskGroup& group, QWidget* parent ) : QWidget(parent){
 	setWindowFlags( Qt::Popup );
-	hide();
+	setAttribute( Qt::WA_DeleteOnClose );
 	
 	setLayout( new QVBoxLayout( this ) );
 	layout()->setContentsMargins( 4, 4, 4, 4 );
-	layout()->addWidget( title = new QLabel( this ) );
+	
+	//Add Header
+	auto title = new QLabel( this );
+	title->setText( "<b>" + group.getApp().class_name + "</b>" );
 	title->setAlignment( Qt::AlignHCenter );
+	layout()->addWidget( title );
 	
 	auto frame = new QFrame( this );
 	frame->setFrameShape( QFrame::HLine );
 	layout()->addWidget( frame );
+
+	//Add WindowItems
+	for( auto& window : group.getWindows() )
+		if( window.isVisible() )
+			layout()->addWidget( new WindowItem( window, *this ) );
 }
 
-void WindowList::changeGroup( TaskGroup* new_group ){
-	group = new_group;
+void positionPopup( QWidget& parent, QWidget& popup, QPoint parent_offset ){
+	//TODO: Check if this is correct way of getting the global position
+	auto top_widget = qApp->topLevelAt( parent.pos() );
+	auto monitor_offset = qApp->desktop()->screenGeometry( &parent ).topLeft();
+	auto parent_pos = top_widget->mapToGlobal( parent.pos() ) + monitor_offset;
 	
-	for( auto& win : windows ){
-		layout()->removeWidget( win );
-		win->deleteLater();
-	}
-	windows.clear();
+	//Center window on the parent
+	QPoint pos(
+			 parent_pos.x() + parent_offset.x() - popup.width() /2
+		,	 parent_pos.y() + parent_offset.y() - popup.height()/2 );
 	
-	if( group ){
-		title->setText( "<b>" + group->getApp().class_name + "</b>" );
-		
-		for( auto& window : group->getWindows() ){
-			if( window.isVisible() ){
-				auto item = new WindowItem( &window, this );
-				layout()->addWidget( item );
-				windows << item;
-			}
-		}
-	}
+	//Make sure it keeps within the available space
+	//NOTE: we already reserved the space, so it will position itself beside the parent
+	auto space = qApp->desktop()->availableGeometry( &parent );
+	pos.setX( std::min( pos.x(), space.x() + space.width()  - popup.width()  ) );
+	pos.setY( std::min( pos.y(), space.y() + space.height() - popup.height() ) );
+	pos.setX( std::max( pos.x(), space.x() ) );
+	pos.setY( std::max( pos.y(), space.y() ) );
 	
-	update();
+	popup.move( pos );
+	
 }
 

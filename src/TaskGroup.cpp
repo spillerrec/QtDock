@@ -111,7 +111,7 @@ void TaskGroup::activate( Qt::KeyboardModifiers mods ){
 							break;
 						}
 				break;
-			default: manager.showWindowList( this ); break; //TODO: show selection menu
+			default: manager.showWindowList( *this ); break; //TODO: show selection menu
 		}
 }
 
