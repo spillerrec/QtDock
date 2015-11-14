@@ -77,18 +77,25 @@ void TaskManager::savePinned(){
 	taskBar().getSettings().setValue( "TaskManager/pinned", apps_var );
 }
 
-void TaskManager::showWindowList( TaskGroup& group ){
+void TaskManager::showWindowList( TaskGroup& group, bool keyboard_focus ){
 	auto list = new WindowList( group, this ); //TODO: make sure we have a group
 	list->show();
 	positionPopup( *this, *list, {width()/2, group.pos().y() + group.width()/2} );
+	
+	if( keyboard_focus )
+		list->initFocus();
 }
 
 void TaskManager::activate( unsigned pos, bool shift ){
 	unsigned i=0;
 	for( auto& task : tasks )
 		if( task->isVisible() ){
-			if( i == pos )
-				task->activate( shift ? Qt::ShiftModifier : Qt::NoModifier );
+			if( i == pos ){
+				if( task->areVisible() > 1 )
+					showWindowList( *task, true );
+				else
+					task->activate( shift ? Qt::ShiftModifier : Qt::NoModifier );
+			}
 			i++;
 		}
 }

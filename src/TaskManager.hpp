@@ -47,7 +47,7 @@ class TaskManager : public TaskBarQWidget<>{
 		
 		const std::vector<TaskGroup*>& getTasks() const{ return tasks; }
 		
-		void showWindowList( TaskGroup& group );
+		void showWindowList( TaskGroup& group, bool keyboard_focus=false );
 		
 		void activate( unsigned pos, bool shift = false );
 };

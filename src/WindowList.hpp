@@ -3,16 +3,11 @@
 #define WINDOW_LIST_HPP
 
 #include <QWidget>
-#include <QList>
-
-class TaskGroup;
-class WindowItem;
-
-class QLabel;
 
 class WindowList : public QWidget{
 	public:
-		WindowList( TaskGroup& group, QWidget* parent=nullptr );
+		WindowList( class TaskGroup& group, QWidget* parent=nullptr );
+		void initFocus(){ focusNextChild(); }
 };
 
 void positionPopup( QWidget& parent, QWidget& popup, QPoint parent_offset );
