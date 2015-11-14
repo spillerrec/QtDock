@@ -2,7 +2,8 @@ TEMPLATE = app
 TARGET = QtDock
 CONFIG += c++11
 QT += KWindowSystem KGlobalAccel
-QT += widgets
+QT += widgets x11extras
+LIBS += -lxcb
 
 # Input
 HEADERS += src/extraWidgets.hpp src/TaskManager.hpp src/TaskBar.hpp src/WindowList.hpp src/TaskGroup.hpp src/TrayWidget.hpp
