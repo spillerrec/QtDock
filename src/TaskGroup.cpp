@@ -87,7 +87,7 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	//Draw app icon centered
 	auto icon = getIcon();
 	auto icon_pos = (size() - icon.size()) / 2;
-	painter.drawPixmap( icon_pos.width(), icon_pos.height(), getIcon() );
+	painter.drawPixmap( icon_pos.width(), icon_pos.height(), icon );
 	
 	painter.setOpacity( 1.0 );
 	
