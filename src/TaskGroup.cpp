@@ -50,7 +50,7 @@ QPixmap TaskGroup::getIcon(){
 	if( app.icon.isNull() ){
 		if( windows.size() > 0 )
 			app.icon = windows.front().icon()
-				.scaled( 32, 32, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
+				.scaled( 32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation );
 			//TODO: clear icon when changing size
 		//TODO: find application icon
 	}
@@ -84,7 +84,11 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	if( amount == 0 )
 		painter.setOpacity( 0.3 );
 	
-	painter.drawPixmap( 2,2, getIcon() );
+	//Draw app icon centered
+	auto icon = getIcon();
+	auto icon_pos = (size() - icon.size()) / 2;
+	painter.drawPixmap( icon_pos.width(), icon_pos.height(), getIcon() );
+	
 	painter.setOpacity( 1.0 );
 	
 	//TODO: properly align it, and draw a circle or something as background
