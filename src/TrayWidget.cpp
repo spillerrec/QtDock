@@ -23,7 +23,6 @@
 
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
-#include <xcb/xcb_atom.h>
 
 /*
 struct x_mon{
@@ -55,10 +54,10 @@ bool TrayFilter::nativeEventFilter( const QByteArray& event_type, void* message,
 			auto client = static_cast<xcb_client_message_event_t*>(message);
 			qDebug() << "Client type is:" << client->type;
 			
-			if( client->type == 442 ){ //TODO: don't use a constant!
+			if( client->type == atom ){
 				auto opcode = client->data.data32[1];
 				auto wid    = client->data.data32[2];
-				if( opcode == 0 );
+				if( opcode == 0 )
 					widget.beginDock( wid );
 				return true;
 			}
@@ -71,10 +70,11 @@ bool TrayFilter::nativeEventFilter( const QByteArray& event_type, void* message,
 	return false;
 }
 
-void debugAtom( xcb_connection_t* conn, std::string name ){
+xcb_atom_t debugAtom( xcb_connection_t* conn, std::string name ){
 	Atom request_dock( conn, name );
 	request_dock.get(conn);
 	qDebug() << "atom opcode is:" << request_dock.atom;
+	return request_dock.atom;
 }
 
 TrayWidget::TrayWidget( TaskBar& task_bar ) : TaskBarQWidget<QWidget>(task_bar), filter(*this) {
@@ -98,7 +98,7 @@ TrayWidget::TrayWidget( TaskBar& task_bar ) : TaskBarQWidget<QWidget>(task_bar),
 	for( auto& atom : x_mons )
 		atom.get( conn );
 	
-	debugAtom( conn, "_NET_SYSTEM_TRAY_OPCODE" );
+	filter.atom = debugAtom( conn, "_NET_SYSTEM_TRAY_OPCODE" );
 	//debugAtom( conn, "_NET_SYSTEM_TRAY_OPCODE" );
 	
 	auto tray_selection = new KSelectionOwner( x_mons[0].atom, -1, this );

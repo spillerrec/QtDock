@@ -3,11 +3,15 @@
 
 #include "TaskBar.hpp"
 
+#include <xcb/xcb_atom.h>
+
 #include <QWidget>
 #include <QAbstractNativeEventFilter>
 
 struct TrayFilter : public QAbstractNativeEventFilter {
 	class TrayWidget& widget;
+	xcb_atom_t atom;
+	
 	TrayFilter( TrayWidget& widget ) : widget(widget) { }
 	
 	virtual bool nativeEventFilter( const QByteArray&, void*, long* ) override;
