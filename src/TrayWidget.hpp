@@ -12,7 +12,8 @@ struct TrayFilter : public QAbstractNativeEventFilter {
 	class TrayWidget& widget;
 	xcb_atom_t atom;
 	
-	TrayFilter( TrayWidget& widget ) : widget(widget) { }
+	TrayFilter( TrayWidget& widget, xcb_atom_t atom )
+		: widget(widget), atom(atom) { }
 	
 	virtual bool nativeEventFilter( const QByteArray&, void*, long* ) override;
 };

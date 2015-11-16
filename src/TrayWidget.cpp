@@ -1,37 +1,16 @@
-
 #include "TrayWidget.hpp"
-#include "TaskGroup.hpp"
-
-#include <QDialog>
-#include <QVBoxLayout>
-#include <QCalendarWidget>
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QApplication>
-#include <QX11Info>
-#include <QWindow>
-#include <QVBoxLayout>
-#include <QLabel>
 
 #include <KSelectionOwner>
-#include <netwm.h>
 
+#include <QApplication>
 #include <QDebug>
+#include <QVBoxLayout>
+#include <QWindow>
+#include <QX11Info>
 
 #include <string>
-#include <vector>
 
 #include <xcb/xcb.h>
-#include <xcb/xproto.h>
-
-/*
-struct x_mon{
-	xcb_atom_t atom;
-	xcb_intern_atom_cookie_t atom_cookie;
-	xcb_get_property_cookie_t prop_cookie;
-	x_mon( xcb_intern_atom_cookie_t atom ) : atom_cookie(atom) { }
-};
-*/
 
 struct Atom{
 	xcb_atom_t atom;
@@ -47,10 +26,20 @@ struct Atom{
 	}
 };
 
+xcb_atom_t getAtom( std::string name ){
+	auto conn = QX11Info::connection();
+	Atom request_dock( conn, name );
+	request_dock.get(conn);
+	return request_dock.atom;
+}
+
+//Handles the request-dock messages
+//TODO: Handle balloon messages as well?
 bool TrayFilter::nativeEventFilter( const QByteArray& event_type, void* message, long* ){
 	if( event_type == "xcb_generic_event_t" ){
 		auto event = static_cast<xcb_generic_event_t*>(message);
 		if( event->response_type == XCB_CLIENT_MESSAGE || event->response_type == (XCB_CLIENT_MESSAGE|128) ){
+			//TODO: I'm not exactly sure how the masking works, we might be missing something
 			auto client = static_cast<xcb_client_message_event_t*>(message);
 			qDebug() << "Client type is:" << client->type;
 			
@@ -62,49 +51,31 @@ bool TrayFilter::nativeEventFilter( const QByteArray& event_type, void* message,
 				return true;
 			}
 		}
-		
-		
 	}
 	else
 		qDebug() << "Unknown event received" << event_type;
 	return false;
 }
 
-xcb_atom_t debugAtom( xcb_connection_t* conn, std::string name ){
-	Atom request_dock( conn, name );
-	request_dock.get(conn);
-	qDebug() << "atom opcode is:" << request_dock.atom;
-	return request_dock.atom;
-}
-
-TrayWidget::TrayWidget( TaskBar& task_bar ) : TaskBarQWidget<QWidget>(task_bar), filter(*this) {
+TrayWidget::TrayWidget( TaskBar& task_bar )
+	:	TaskBarQWidget<QWidget>(task_bar)
+	,	filter( *this, getAtom("_NET_SYSTEM_TRAY_OPCODE") ) {
+		
 	setLayout( new QVBoxLayout( this ) );
-	setContentsMargins( 0,0,0,0 );
 	layout()->setContentsMargins( 0,0,0,0 );
-	qApp->installNativeEventFilter( &filter );
 	
 	
+	//Get system tray selection
+	auto tray_selection = new KSelectionOwner( getAtom("_NET_SYSTEM_TRAY_S0"), -1, this );
+	//TODO: what does system trays on other monitors mean?
 	
+	connect( tray_selection, &KSelectionOwner::claimedOwnership
+		,	[&](){ qApp->installNativeEventFilter( &filter ); }
+		); //NOTE: Can we sure this will happen before the first requests?
 	
-	xcb_connection_t *conn = QX11Info::connection();
-	int monitor_amount = QApplication::desktop()->screenCount();
-	
-	//Get cookies for atoms
-	std::vector<Atom> x_mons;
-	x_mons.reserve( monitor_amount );
-	for( int i=0; i<monitor_amount; i++ )
-		x_mons.emplace_back( conn, "_NET_SYSTEM_TRAY_S" + std::to_string( i ) );
-	
-	for( auto& atom : x_mons )
-		atom.get( conn );
-	
-	filter.atom = debugAtom( conn, "_NET_SYSTEM_TRAY_OPCODE" );
-	//debugAtom( conn, "_NET_SYSTEM_TRAY_OPCODE" );
-	
-	auto tray_selection = new KSelectionOwner( x_mons[0].atom, -1, this );
-	
-	connect( tray_selection, &KSelectionOwner::claimedOwnership, [](){ qDebug() << "Got selection"; } );
-	connect( tray_selection, &KSelectionOwner::failedToClaimOwnership, [](){ qDebug() << "Did not get selection"; } );
+	connect( tray_selection, &KSelectionOwner::failedToClaimOwnership
+		,	[](){ qDebug() << "Could not get X selection for the system tray"; }
+		);
 	
 	tray_selection->claim( false );
 }
@@ -119,7 +90,4 @@ void TrayWidget::beginDock( WId id ){
 	widget->setMaximumSize( 16,16 );
 	widget->setMinimumSize( 16,16 );
 	layout()->addWidget( widget );
-	
-	qDebug() << widget->minimumSize();
-	qDebug() << widget->maximumSize();
 }
