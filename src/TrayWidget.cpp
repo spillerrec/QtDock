@@ -41,19 +41,20 @@ bool TrayFilter::nativeEventFilter( const QByteArray& event_type, void* message,
 		if( event->response_type == XCB_CLIENT_MESSAGE || event->response_type == (XCB_CLIENT_MESSAGE|128) ){
 			//TODO: I'm not exactly sure how the masking works, we might be missing something
 			auto client = static_cast<xcb_client_message_event_t*>(message);
-			qDebug() << "Client type is:" << client->type;
 			
 			if( client->type == atom ){
 				auto opcode = client->data.data32[1];
 				auto wid    = client->data.data32[2];
-				if( opcode == 0 )
+				if( opcode == 0 ){
 					widget.beginDock( wid );
-				return true;
+					return true;
+				}
+				else
+					qDebug() << "Not handling system tray opcode:" << opcode;
 			}
 		}
 	}
-	else
-		qDebug() << "Unknown event received" << event_type;
+	
 	return false;
 }
 
@@ -82,7 +83,7 @@ TrayWidget::TrayWidget( TaskBar& task_bar )
 
 
 void TrayWidget::beginDock( WId id ){
-	qDebug() << "Attemting to embed:" << id;
+	qDebug() << "Attemting to embed tray:" << id;
 	auto window = QWindow::fromWinId( id );
 	window->resize( 16, 16 );
 	

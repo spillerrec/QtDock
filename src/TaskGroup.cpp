@@ -74,7 +74,6 @@ void TaskGroup::startApplication(){
 
 
 void TaskGroup::paintEvent( QPaintEvent* ) {
-	//TODO: calculate positions dynamically
 	auto amount = areVisible();
 	
 	QPainter painter(this);
@@ -91,12 +90,16 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	
 	painter.setOpacity( 1.0 );
 	
-	//TODO: properly align it, and draw a circle or something as background
-	if( amount > 1 )
-		painter.drawText( 24, 32, QString::number( amount ) );
+	//TODO: pdraw a circle or something as background
+	if( amount > 1 ){
+		auto margin = 3;
+		auto limits = QRectF( margin, margin, width()-margin*2, height()-margin*2 );
+		auto text = QString::number( amount );
+		painter.drawText( limits, Qt::AlignRight | Qt::AlignBottom, text );
+	}
 	
 	if( underMouse() )
-		painter.drawRect( 0,0, 35,35 );
+		painter.drawRect( 0,0, width()-1, height()-1 );
 }
 
 void TaskGroup::activate( Qt::KeyboardModifiers mods ){
