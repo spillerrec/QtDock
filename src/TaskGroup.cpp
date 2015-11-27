@@ -5,6 +5,8 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QRadialGradient>
+#include <QPalette>
 #include <QProcess>
 
 
@@ -82,6 +84,19 @@ void TaskGroup::paintEvent( QPaintEvent* ) {
 	//Pinned, but not running applications
 	if( amount == 0 )
 		painter.setOpacity( 0.3 );
+	
+	if( active ){
+		QPointF center( width()/2.0, height()/2.0 );
+		QRadialGradient gradient( center, width()/2, center );
+		gradient.setColorAt( 0, QPalette().color(QPalette::Highlight) );
+		gradient.setColorAt( 1, QColor(0,0,0,0) );
+		
+		painter.setPen( QPen(Qt::NoPen) );
+		painter.setBrush( QBrush(gradient) );
+		painter.drawRect( 0,0, width(),height() );
+		painter.setBrush( QBrush() );
+		painter.setPen( QPen() );
+	}
 	
 	//Draw app icon centered
 	auto icon = getIcon();
