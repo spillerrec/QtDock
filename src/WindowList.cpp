@@ -99,15 +99,12 @@ WindowList::WindowList( TaskGroup& group, QWidget* parent ) : QWidget(parent){
 }
 
 void positionPopup( QWidget& parent, QWidget& popup, QPoint parent_offset ){
-	//TODO: Check if this is correct way of getting the global position
-	auto top_widget = qApp->topLevelAt( parent.pos() );
-	auto monitor_offset = qApp->desktop()->screenGeometry( &parent ).topLeft();
-	auto parent_pos = top_widget->mapToGlobal( parent.pos() ) + monitor_offset;
+	auto parent_pos = parent.mapToGlobal( parent_offset );
 	
 	//Center window on the parent
 	QPoint pos(
-			 parent_pos.x() + parent_offset.x() - popup.width() /2
-		,	 parent_pos.y() + parent_offset.y() - popup.height()/2 );
+			 parent_pos.x() - popup.width() /2
+		,	 parent_pos.y() - popup.height()/2 );
 	
 	//Make sure it keeps within the available space
 	//NOTE: we already reserved the space, so it will position itself beside the parent
