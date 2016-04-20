@@ -3,6 +3,7 @@
 #include "TaskManager.hpp"
 
 #include <QMessageBox>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QRadialGradient>
@@ -145,8 +146,17 @@ void TaskGroup::mouseReleaseEvent( QMouseEvent* event ) {
 	if( event->button() == Qt::LeftButton )
 		activate( event->modifiers() );
 	else if( event->button() == Qt::RightButton ){
-		pinned = !pinned;
-		emit pinnedChanged();
+		
+		QMenu* menu = new QMenu( this );
+		auto pin_action = menu->addAction( pinned ? tr("Unpin") : tr("Pin") );
+		connect( pin_action, &QAction::triggered, [&](){
+				pinned = !pinned;
+				emit pinnedChanged();
+			} );
+		
+		//TODO: Extend this greatly
+		
+		menu->popup( event->globalPos() );
 	}
 	else
 		event->ignore();
