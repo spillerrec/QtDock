@@ -51,7 +51,7 @@ class Window{
 		bool isActive() const{ return KWindowSystem::activeWindow() == id; }
 		void activate(){ KWindowSystem::forceActiveWindow( id ); }
 		void minimize(){ KWindowSystem::minimizeWindow( id ); }
-		void close(){ qDebug( "Window::close(), not yet implemented :(" ); } //TODO: Implement this method
+		void close();
 };
 
 class TaskGroup: public TaskBarQWidget<>{

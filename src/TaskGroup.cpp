@@ -1,6 +1,9 @@
 
 #include "TaskGroup.hpp"
 #include "TaskManager.hpp"
+#include "Xcb.hpp"
+
+#include <xcb/xproto.h>
 
 #include <QMessageBox>
 #include <QMenu>
@@ -29,6 +32,18 @@ Window::Window( WId id ) : id(id) {
 
 QString Window::getTitle() const{
 	return KWindowInfo( id, NET::WMVisibleIconName ).visibleIconName();
+}
+
+void Window::close(){
+	xcb_client_message_event_t message = {};
+	message.response_type = XCB_CLIENT_MESSAGE;
+	message.format = 32;
+	message.window = id; //TODO: ensure this is correct
+	message.type = getAtom( "WM_PROTOCOLS" );
+	message.data.data32[0] = getAtom( "WM_DELETE_WINDOW" );
+	message.data.data32[1] = 0;//TODO: CurrentTime
+	
+	xcb_send_event( QX11Info::connection(), false, id, XCB_EVENT_MASK_NO_EVENT, (char*)&message );
 }
 
 TaskGroup::TaskGroup( TaskManager& manager ) : TaskBarQWidget<>( manager.taskBar() ), manager(manager){
